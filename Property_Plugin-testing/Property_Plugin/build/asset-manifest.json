@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/wp-content/plugins/Property_Plugin/static/css/main.98dacf62.css",
+    "main.js": "/wp-content/plugins/Property_Plugin/static/js/main.19f25ba6.js",
+    "index.html": "/wp-content/plugins/Property_Plugin/index.html",
+    "main.98dacf62.css.map": "/wp-content/plugins/Property_Plugin/static/css/main.98dacf62.css.map",
+    "main.19f25ba6.js.map": "/wp-content/plugins/Property_Plugin/static/js/main.19f25ba6.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.98dacf62.css",
+    "static/js/main.19f25ba6.js"
+  ]
+}

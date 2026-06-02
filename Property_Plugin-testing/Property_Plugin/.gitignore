@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Development files
+README.md
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# classic editor
+classic-editor/
+
+# Source files (React development)
+src/
+
+# Keep build folder (it's needed for production)
+# build/ is tracked in git
