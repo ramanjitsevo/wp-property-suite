@@ -634,6 +634,14 @@ function property_plugin_enqueue_assets() {
                         PROPERTY_PLUGIN_VERSION
                     );
                 }
+                
+                // Enqueue Font Awesome
+                wp_enqueue_style(
+                    'font-awesome',
+                    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css',
+                    array(),
+                    '6.5.1'
+                );
             } else {
                 error_log('Property Plugin: No JS files found!');
             }
