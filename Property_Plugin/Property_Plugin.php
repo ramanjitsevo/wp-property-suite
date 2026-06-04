@@ -21,6 +21,9 @@ define('PROPERTY_PLUGIN_PATH', plugin_dir_path(__FILE__));
 define('PROPERTY_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('PROPERTY_PLUGIN_VERSION', '1.0.0');
 
+// Include admin settings
+require_once PROPERTY_PLUGIN_PATH . 'includes/admin-settings.php';
+
 /**
  * Initialize the plugin
  */
@@ -618,10 +621,40 @@ function property_plugin_enqueue_assets() {
                     true
                 );
                 
-                // Pass REST API URL to React
+                // Pass REST API URL and settings to React
                 wp_localize_script('property-plugin-react', 'propertyPluginData', array(
                     'apiUrl' => esc_url_raw(rest_url('property-plugin/v1')),
                     'nonce' => wp_create_nonce('wp_rest'),
+                    'settings' => array(
+                        'headerText' => get_option('property_plugin_header_text', 'Find Your Dream Property'),
+                        'bannerSubtitle' => get_option('property_plugin_banner_subtitle', 'Discover the perfect home for your family'),
+                        'bannerImage' => get_option('property_plugin_banner_image', ''),
+                        'bannerHeight' => get_option('property_plugin_banner_height', '400'),
+                        'bannerOverlay' => get_option('property_plugin_banner_overlay', '50'),
+                        'bannerOverlayColor' => get_option('property_plugin_banner_overlay_color', '#000000'),
+                        'primaryColor' => get_option('property_plugin_primary_color', '#2563eb'),
+                        'secondaryColor' => get_option('property_plugin_secondary_color', '#10b981'),
+                        'textColor' => get_option('property_plugin_text_color', '#1f2937'),
+                        'backgroundColor' => get_option('property_plugin_background_color', '#f3f4f6'),
+                        'cardBackground' => get_option('property_plugin_card_background', '#ffffff'),
+                        'fontFamily' => get_option('property_plugin_font_family', 'Arial, sans-serif'),
+                        'fontSize' => get_option('property_plugin_font_size', '16'),
+                        'propertiesPerPage' => get_option('property_plugin_properties_per_page', '12'),
+                        'cardLayout' => get_option('property_plugin_card_layout', 'grid'),
+                        'showBadge' => get_option('property_plugin_show_badge', '1'),
+                        'showArea' => get_option('property_plugin_show_area', '1'),
+                        'showAddress' => get_option('property_plugin_show_address', '1'),
+                        'sidebarPosition' => get_option('property_plugin_sidebar_position', 'left'),
+                        'sidebarWidth' => get_option('property_plugin_sidebar_width', '280'),
+                        'enableFilters' => get_option('property_plugin_enable_filters', '1'),
+                        'enableCompare' => get_option('property_plugin_enable_compare', '1'),
+                        'enableLeadForm' => get_option('property_plugin_enable_lead_form', '1'),
+                        'leadFormTitle' => get_option('property_plugin_lead_form_title', 'Interested in this property?'),
+                        'contactEmail' => get_option('property_plugin_contact_email', ''),
+                        'contactPhone' => get_option('property_plugin_contact_phone', ''),
+                        'customCSS' => get_option('property_plugin_custom_css', ''),
+                        'googleAnalytics' => get_option('property_plugin_google_analytics', ''),
+                    )
                 ));
                 
                 // Enqueue CSS if exists
