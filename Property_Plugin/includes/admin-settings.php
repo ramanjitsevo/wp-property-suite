@@ -64,6 +64,9 @@ function property_plugin_register_settings() {
     register_setting('property_plugin_contact', 'property_plugin_enable_lead_form', array('sanitize_callback' => 'sanitize_text_field'));
     register_setting('property_plugin_contact', 'property_plugin_lead_form_title', array('sanitize_callback' => 'sanitize_text_field'));
     
+    // API Keys
+    register_setting('property_plugin_api', 'property_plugin_google_api_key', array('sanitize_callback' => 'sanitize_text_field'));
+    
     // Advanced Settings
     register_setting('property_plugin_advanced', 'property_plugin_custom_css', array('sanitize_callback' => 'wp_strip_all_tags'));
     register_setting('property_plugin_advanced', 'property_plugin_google_analytics', array('sanitize_callback' => 'sanitize_text_field'));
@@ -108,6 +111,10 @@ function property_plugin_settings_page() {
                 <button class="tab-button" data-tab="contact">
                     <span class="dashicons dashicons-email"></span>
                     <?php _e('Contact & Lead Form', 'property-plugin'); ?>
+                </button>
+                <button class="tab-button" data-tab="api">
+                    <span class="dashicons dashicons-admin-network"></span>
+                    <?php _e('API Keys', 'property-plugin'); ?>
                 </button>
                 <button class="tab-button" data-tab="advanced">
                     <span class="dashicons dashicons-admin-tools"></span>
@@ -537,6 +544,41 @@ function property_plugin_settings_page() {
                                            value="<?php echo esc_attr(get_option('property_plugin_lead_form_title', 'Interested in this property?')); ?>" 
                                            class="regular-text" />
                                     <p class="description"><?php _e('Title text for the lead capture form', 'property-plugin'); ?></p>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- API Keys Tab -->
+                <div class="tab-content" id="api">
+                    <div class="settings-section">
+                        <h2><?php _e('API Keys Configuration', 'property-plugin'); ?></h2>
+                        <p class="section-description"><?php _e('Configure third-party API keys for enhanced functionality', 'property-plugin'); ?></p>
+                        
+                        <table class="form-table">
+                            <tr>
+                                <th scope="row">
+                                    <label for="google_api_key"><?php _e('Google Maps API Key', 'property-plugin'); ?></label>
+                                </th>
+                                <td>
+                                    <input type="text" id="google_api_key" name="property_plugin_google_api_key" 
+                                           value="<?php echo esc_attr(get_option('property_plugin_google_api_key', '')); ?>" 
+                                           class="regular-text code" placeholder="AIzaSy..." />
+                                    <p class="description">
+                                        <?php _e('Enter your Google Places API key for address autocomplete.', 'property-plugin'); ?><br/>
+                                        <a href="https://developers.google.com/maps/documentation/javascript/get-api-key" target="_blank"><?php _e('Get API Key →', 'property-plugin'); ?></a>
+                                    </p>
+                                    <div class="api-setup-instructions" style="margin-top: 15px; padding: 15px; background: #fff; border-left: 4px solid #2271b1;">
+                                        <h4 style="margin-top: 0;"><?php _e('Setup Instructions:', 'property-plugin'); ?></h4>
+                                        <ol>
+                                            <li><?php _e('Go to Google Cloud Console', 'property-plugin'); ?></li>
+                                            <li><?php _e('Create a project or select existing', 'property-plugin'); ?></li>
+                                            <li><?php _e('Enable "Places API" and "Maps JavaScript API"', 'property-plugin'); ?></li>
+                                            <li><?php _e('Create API credentials', 'property-plugin'); ?></li>
+                                            <li><?php _e('Paste the API key here', 'property-plugin'); ?></li>
+                                        </ol>
+                                    </div>
                                 </td>
                             </tr>
                         </table>
@@ -1066,6 +1108,7 @@ function property_plugin_save_all_settings_ajax() {
         'property_plugin_contact_phone' => 'sanitize_text_field',
         'property_plugin_enable_lead_form' => 'sanitize_text_field',
         'property_plugin_lead_form_title' => 'sanitize_text_field',
+        'property_plugin_google_api_key' => 'sanitize_text_field',
         'property_plugin_custom_css' => 'wp_strip_all_tags',
         'property_plugin_google_analytics' => 'sanitize_text_field',
     );

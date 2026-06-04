@@ -245,7 +245,13 @@ function property_plugin_meta_box_callback($post) {
     $price = get_post_meta($post->ID, '_property_price', true);
     $area = get_post_meta($post->ID, '_property_area', true);
     $address = get_post_meta($post->ID, '_property_address', true);
+    $city = get_post_meta($post->ID, '_property_city', true);
+    $state = get_post_meta($post->ID, '_property_state', true);
+    $zipcode = get_post_meta($post->ID, '_property_zipcode', true);
+    $country = get_post_meta($post->ID, '_property_country', true);
     $status = get_post_meta($post->ID, '_property_status', true);
+    
+    $google_api_key = get_option('property_plugin_google_api_key', '');
     
     ?>
     <p>
@@ -256,10 +262,81 @@ function property_plugin_meta_box_callback($post) {
         <label for="property_area"><?php _e('Area (sq ft):', 'property-plugin'); ?></label><br>
         <input type="number" id="property_area" name="property_area" value="<?php echo esc_attr($area); ?>" style="width: 100%;" placeholder="e.g., 1500">
     </p>
+    
+    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ccc;">
+    
+    <h3><?php _e('Location Details', 'property-plugin'); ?></h3>
+    
     <p>
         <label for="property_address"><?php _e('Full Address:', 'property-plugin'); ?></label><br>
-        <input type="text" id="property_address" name="property_address" value="<?php echo esc_attr($address); ?>" style="width: 100%;" placeholder="e.g., 123 Main St, New York, USA">
+        <input type="text" id="property_address" name="property_address" value="<?php echo esc_attr($address); ?>" style="width: 100%;" placeholder="Start typing to autocomplete..." class="google-autocomplete-address">
+        <?php if ($google_api_key): ?>
+        <script>
+        jQuery(document).ready(function($) {
+            if (typeof google === 'undefined') {
+                var script = document.createElement('script');
+                script.src = 'https://maps.googleapis.com/maps/api/js?key=<?php echo esc_js($google_api_key); ?>&libraries=places';
+                script.async = true;
+                script.defer = true;
+                script.onload = function() {
+                    initAutocomplete();
+                };
+                document.head.appendChild(script);
+            } else {
+                initAutocomplete();
+            }
+            
+            function initAutocomplete() {
+                var input = document.getElementById('property_address');
+                if (!input) return;
+                
+                var autocomplete = new google.maps.places.Autocomplete(input, {
+                    types: ['geocode']
+                });
+                
+                autocomplete.setFields(['address_component']);
+                
+                autocomplete.addListener('place_changed', function() {
+                    var place = autocomplete.getPlace();
+                    
+                    var components = {};
+                    for (var component of place.address_components) {
+                        components[component.types[0]] = component.long_name;
+                    }
+                    
+                    $('#property_city').val(components.locality || components.sublocality || '');
+                    $('#property_state').val(components.administrative_area_level_1 || '');
+                    $('#property_zipcode').val(components.postal_code || '');
+                    $('#property_country').val(components.country || '');
+                });
+            }
+        });
+        </script>
+        <?php endif; ?>
+        <p class="description"><?php _e('Start typing an address and select from suggestions', 'property-plugin'); ?></p>
     </p>
+    
+    <table class="form-table" style="margin-top: 15px;">
+        <tr>
+            <th><label for="property_city"><?php _e('City:', 'property-plugin'); ?></label></th>
+            <td><input type="text" id="property_city" name="property_city" value="<?php echo esc_attr($city); ?>" style="width: 100%;" placeholder="City"></td>
+        </tr>
+        <tr>
+            <th><label for="property_state"><?php _e('State:', 'property-plugin'); ?></label></th>
+            <td><input type="text" id="property_state" name="property_state" value="<?php echo esc_attr($state); ?>" style="width: 100%;" placeholder="State"></td>
+        </tr>
+        <tr>
+            <th><label for="property_zipcode"><?php _e('Zip Code:', 'property-plugin'); ?></label></th>
+            <td><input type="text" id="property_zipcode" name="property_zipcode" value="<?php echo esc_attr($zipcode); ?>" style="width: 100%;" placeholder="Zip Code"></td>
+        </tr>
+        <tr>
+            <th><label for="property_country"><?php _e('Country:', 'property-plugin'); ?></label></th>
+            <td><input type="text" id="property_country" name="property_country" value="<?php echo esc_attr($country); ?>" style="width: 100%;" placeholder="Country"></td>
+        </tr>
+    </table>
+    
+    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ccc;">
+    
     <p>
         <label for="property_status"><?php _e('Status:', 'property-plugin'); ?></label><br>
         <select id="property_status" name="property_status" style="width: 100%;">
@@ -302,6 +379,22 @@ function property_plugin_save_meta_boxes($post_id) {
     
     if (isset($_POST['property_address'])) {
         update_post_meta($post_id, '_property_address', sanitize_text_field($_POST['property_address']));
+    }
+    
+    if (isset($_POST['property_city'])) {
+        update_post_meta($post_id, '_property_city', sanitize_text_field($_POST['property_city']));
+    }
+    
+    if (isset($_POST['property_state'])) {
+        update_post_meta($post_id, '_property_state', sanitize_text_field($_POST['property_state']));
+    }
+    
+    if (isset($_POST['property_zipcode'])) {
+        update_post_meta($post_id, '_property_zipcode', sanitize_text_field($_POST['property_zipcode']));
+    }
+    
+    if (isset($_POST['property_country'])) {
+        update_post_meta($post_id, '_property_country', sanitize_text_field($_POST['property_country']));
     }
     
     if (isset($_POST['property_status'])) {
@@ -524,6 +617,10 @@ function property_plugin_get_properties($request) {
         $price = get_post_meta($post->ID, '_property_price', true);
         $area = get_post_meta($post->ID, '_property_area', true);
         $address = get_post_meta($post->ID, '_property_address', true);
+        $city = get_post_meta($post->ID, '_property_city', true);
+        $state = get_post_meta($post->ID, '_property_state', true);
+        $zipcode = get_post_meta($post->ID, '_property_zipcode', true);
+        $country = get_post_meta($post->ID, '_property_country', true);
         $status = get_post_meta($post->ID, '_property_status', true);
         
         $property_data = array(
@@ -536,6 +633,10 @@ function property_plugin_get_properties($request) {
             'price' => property_plugin_format_price($price),
             'area' => $area ? $area . ' sq ft' : 'N/A',
             'address' => $address ?: 'Address not available',
+            'city' => $city ?: '',
+            'state' => $state ?: '',
+            'zipcode' => $zipcode ?: '',
+            'country' => $country ?: '',
             'status' => $status ?: 'for-sale',
             'property_type' => !empty($property_types) ? $property_types[0] : 'Property',
             'location' => !empty($locations) ? $locations[0] : 'Location',
@@ -583,6 +684,10 @@ function property_plugin_get_property($request) {
     $price = get_post_meta($post->ID, '_property_price', true);
     $area = get_post_meta($post->ID, '_property_area', true);
     $address = get_post_meta($post->ID, '_property_address', true);
+    $city = get_post_meta($post->ID, '_property_city', true);
+    $state = get_post_meta($post->ID, '_property_state', true);
+    $zipcode = get_post_meta($post->ID, '_property_zipcode', true);
+    $country = get_post_meta($post->ID, '_property_country', true);
     $status = get_post_meta($post->ID, '_property_status', true);
     
     $property_data = array(
@@ -595,6 +700,10 @@ function property_plugin_get_property($request) {
         'price' => property_plugin_format_price($price),
         'area' => $area ? $area . ' sq ft' : 'N/A',
         'address' => $address ?: 'Address not available',
+        'city' => $city ?: '',
+        'state' => $state ?: '',
+        'zipcode' => $zipcode ?: '',
+        'country' => $country ?: '',
         'status' => $status ?: 'for-sale',
         'property_type' => !empty($property_types) ? $property_types[0] : 'Property',
         'location' => !empty($locations) ? $locations[0] : 'Location',
