@@ -881,6 +881,9 @@ function property_plugin_activate() {
     
     // Flush rewrite rules
     flush_rewrite_rules();
+    
+    // Set a transient to show the activation notice on next admin page load
+    set_transient('property_plugin_show_activation_notice', true, 60);
 }
 register_activation_hook(__FILE__, 'property_plugin_activate');
 
@@ -892,3 +895,98 @@ function property_plugin_deactivate() {
     flush_rewrite_rules();
 }
 register_deactivation_hook(__FILE__, 'property_plugin_deactivate');
+
+/**
+ * Display admin notice after plugin activation
+ */
+function property_plugin_admin_notice() {
+    if (!get_transient('property_plugin_show_activation_notice')) {
+        return;
+    }
+    
+    // Don't show if user dismissed it
+    if (get_user_meta(get_current_user_id(), 'property_plugin_notice_dismissed', true)) {
+        delete_transient('property_plugin_show_activation_notice');
+        return;
+    }
+    
+    $guide_url = admin_url('admin.php?page=property-plugin-guide');
+    $settings_url = admin_url('admin.php?page=property-plugin-settings');
+    ?>
+    <style>
+        .property-plugin-activation-notice .button .dashicons {
+            line-height: 1;
+            vertical-align: middle;
+            margin-top: -1px;
+        }
+    </style>
+    <div class="notice notice-success is-dismissible property-plugin-activation-notice" id="property-plugin-notice">
+        <div style="display:flex; align-items:flex-start; gap:15px; padding:8px 0;">
+            <div style="flex-shrink:0;">
+                <span class="dashicons dashicons-building" style="font-size:40px; color:#2271b1; width:40px; height:40px;"></span>
+            </div>
+            <div style="flex:1;">
+                <h2 style="margin:0 0 8px; color:#1d2327;">Property Plugin is Ready! 🏠</h2>
+                <p style="margin:0 0 12px; font-size:14px; color:#3c434a;">
+                    Your property listing plugin has been activated. Here's how to get started:
+                </p>
+                <div style="background:#f0f6fc; border-left:4px solid #2271b1; padding:12px 15px; margin-bottom:12px;">
+                    <p style="margin:0 0 8px; font-weight:600; font-size:14px;">Step 1: Add the shortcode to any page</p>
+                    <p style="margin:0; font-size:13px;">
+                        Copy <code style="background:#fff; padding:3px 8px; border:1px solid #c3c4c7; font-size:13px;">[property_plugin]</code> and paste it into any WordPress page to display your property listings with banner, search, filters, and cards.
+                    </p>
+                </div>
+                <div style="background:#f0f6fc; border-left:4px solid #2271b1; padding:12px 15px; margin-bottom:12px;">
+                    <p style="margin:0 0 8px; font-weight:600; font-size:14px;">Step 2: Customize your settings</p>
+                    <p style="margin:0; font-size:13px;">
+                        Go to <strong>Property Plugin Settings</strong> to change the banner image, colors, header text, card layout, and more.
+                    </p>
+                </div>
+                <p style="margin:0;">
+                    <a href="<?php echo esc_url($guide_url); ?>" class="button button-primary" style="margin-right:8px;">
+                        <span class="dashicons dashicons-book" style="vertical-align:middle; margin-right:4px;"></span>View Shortcode Guide
+                    </a>
+                    <a href="<?php echo esc_url($settings_url); ?>" class="button button-secondary">
+                        <span class="dashicons dashicons-admin-generic" style="vertical-align:middle; margin-right:4px;"></span>Open Settings
+                    </a>
+                    <button type="button" class="button-link property-plugin-dismiss-notice" style="margin-left:15px; color:#787c82; text-decoration:underline;">
+                        Don't show this again
+                    </button>
+                </p>
+            </div>
+        </div>
+    </div>
+    <script>
+    jQuery(document).ready(function($) {
+        // Dismiss button in the notice header (X button)
+        $(document).on('click', '#property-plugin-notice .notice-dismiss', function() {
+            $.post(ajaxurl, {
+                action: 'property_plugin_dismiss_notice',
+                nonce: '<?php echo wp_create_nonce('property_plugin_dismiss_notice'); ?>'
+            });
+        });
+        // "Don't show this again" link
+        $(document).on('click', '.property-plugin-dismiss-notice', function(e) {
+            e.preventDefault();
+            $('#property-plugin-notice').fadeOut();
+            $.post(ajaxurl, {
+                action: 'property_plugin_dismiss_notice',
+                nonce: '<?php echo wp_create_nonce('property_plugin_dismiss_notice'); ?>'
+            });
+        });
+    });
+    </script>
+    <?php
+}
+add_action('admin_notices', 'property_plugin_admin_notice');
+
+/**
+ * AJAX handler to dismiss the activation notice permanently
+ */
+function property_plugin_dismiss_notice_ajax() {
+    check_ajax_referer('property_plugin_dismiss_notice', 'nonce');
+    update_user_meta(get_current_user_id(), 'property_plugin_notice_dismissed', true);
+    delete_transient('property_plugin_show_activation_notice');
+    wp_send_json_success();
+}
+add_action('wp_ajax_property_plugin_dismiss_notice', 'property_plugin_dismiss_notice_ajax');

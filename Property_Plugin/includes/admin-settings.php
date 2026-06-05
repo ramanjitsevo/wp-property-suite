@@ -22,6 +22,15 @@ function property_plugin_add_admin_menu() {
         'dashicons-building',
         6
     );
+    
+    add_submenu_page(
+        'property-plugin-settings',
+        __('Shortcode Guide', 'property-plugin'),
+        __('Shortcode Guide', 'property-plugin'),
+        'manage_options',
+        'property-plugin-guide',
+        'property_plugin_shortcode_guide_page'
+    );
 }
 add_action('admin_menu', 'property_plugin_add_admin_menu');
 
@@ -1055,8 +1064,8 @@ function property_plugin_settings_page() {
  * Enqueue admin scripts and styles for settings page
  */
 function property_plugin_admin_enqueue_scripts($hook) {
-    // Only load on our settings page
-    if ('toplevel_page_property-plugin-settings' !== $hook) {
+    // Only load on our settings pages
+    if (!in_array($hook, array('toplevel_page_property-plugin-settings', 'property-plugin-settings_page_property-plugin-guide'))) {
         return;
     }
     
@@ -1066,6 +1075,9 @@ function property_plugin_admin_enqueue_scripts($hook) {
     // Enqueue color picker
     wp_enqueue_style('wp-color-picker');
     wp_enqueue_script('wp-color-picker');
+    
+    // Enqueue clipboard.js for copy shortcode button
+    wp_enqueue_script('clipboard');
 }
 add_action('admin_enqueue_scripts', 'property_plugin_admin_enqueue_scripts');
 
@@ -1265,3 +1277,346 @@ function property_plugin_register_all_custom_taxonomies() {
     }
 }
 add_action('init', 'property_plugin_register_all_custom_taxonomies');
+
+/**
+ * Shortcode Guide Page
+ */
+function property_plugin_shortcode_guide_page() {
+    ?>
+    <div class="wrap property-plugin-guide">
+        <div class="ppg-header">
+            <div class="ppg-header-inner">
+                <span class="dashicons dashicons-building ppg-logo"></span>
+                <div>
+                    <h1><?php _e('Property Plugin — Shortcode Guide', 'property-plugin'); ?></h1>
+                    <p class="ppg-subtitle"><?php _e('Everything you need to know to get your property listings up and running.', 'property-plugin'); ?></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Start Banner -->
+        <div class="ppg-quickstart">
+            <h2><span class="dashicons dashicons-rocket"></span> <?php _e('Quick Start in 2 Steps', 'property-plugin'); ?></h2>
+            <div class="ppg-steps">
+                <div class="ppg-step">
+                    <div class="ppg-step-num">1</div>
+                    <div class="ppg-step-body">
+                        <h3><?php _e('Create or Edit a Page', 'property-plugin'); ?></h3>
+                        <p><?php _e('Go to', 'property-plugin'); ?> <strong><?php _e('Pages → Add New', 'property-plugin'); ?></strong> <?php _e('or open an existing page where you want to show property listings.', 'property-plugin'); ?></p>
+                    </div>
+                </div>
+                <div class="ppg-step">
+                    <div class="ppg-step-num">2</div>
+                    <div class="ppg-step-body">
+                        <h3><?php _e('Paste the Shortcode', 'property-plugin'); ?></h3>
+                        <p><?php _e('Add a <strong>Shortcode block</strong> (or Classic Editor) and paste:', 'property-plugin'); ?></p>
+                        <div class="ppg-shortcode-box">
+                            <code id="ppg-main-shortcode">[property_plugin]</code>
+                            <button type="button" class="button button-primary ppg-copy-btn" data-copy="[property_plugin]">
+                                <span class="dashicons dashicons-clipboard"></span> <?php _e('Copy', 'property-plugin'); ?>
+                            </button>
+                        </div>
+                        <p class="ppg-note"><?php _e('Publish / Update the page and visit it — you\'ll see your full property listing with banner, search bar, filters, and property cards.', 'property-plugin'); ?></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shortcode Reference -->
+        <div class="ppg-section">
+            <h2><span class="dashicons dashicons-editor-code"></span> <?php _e('Available Shortcodes', 'property-plugin'); ?></h2>
+            <table class="wp-list-table widefat fixed striped ppg-table">
+                <thead>
+                    <tr>
+                        <th style="width:220px;"><?php _e('Shortcode', 'property-plugin'); ?></th>
+                        <th><?php _e('Description', 'property-plugin'); ?></th>
+                        <th style="width:200px;"><?php _e('Where to Use', 'property-plugin'); ?></th>
+                        <th style="width:100px;"><?php _e('Copy', 'property-plugin'); ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code class="ppg-code">[property_plugin]</code></td>
+                        <td>
+                            <strong><?php _e('Full Property Listings', 'property-plugin'); ?></strong><br>
+                            <?php _e('Displays the complete property listing page including:', 'property-plugin'); ?>
+                            <ul style="margin:6px 0 0 18px; list-style:disc; color:#50575e;">
+                                <li><?php _e('Hero banner image with overlay text', 'property-plugin'); ?></li>
+                                <li><?php _e('Search bar with location autocomplete (Google Places API)', 'property-plugin'); ?></li>
+                                <li><?php _e('Filter sidebar — price range, property type, rent/sold status', 'property-plugin'); ?></li>
+                                <li><?php _e('Property cards grid/list with badges, images, area, address', 'property-plugin'); ?></li>
+                                <li><?php _e('Dynamic pagination (respects "Properties Per Page" setting)', 'property-plugin'); ?></li>
+                                <li><?php _e('Individual property detail pages with lead capture form', 'property-plugin'); ?></li>
+                                <li><?php _e('Property compare feature (if enabled)', 'property-plugin'); ?></li>
+                            </ul>
+                        </td>
+                        <td><?php _e('Any WordPress Page or Post', 'property-plugin'); ?></td>
+                        <td>
+                            <button type="button" class="button ppg-copy-btn" data-copy="[property_plugin]">
+                                <span class="dashicons dashicons-clipboard"></span>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- What You Can Customize -->
+        <div class="ppg-section">
+            <h2><span class="dashicons dashicons-admin-customizer"></span> <?php _e('What Can You Customize?', 'property-plugin'); ?></h2>
+            <p class="ppg-intro"><?php printf(__('All settings are available at <strong>%s</strong>. Here\'s what each section controls:', 'property-plugin'), '<a href="' . admin_url('admin.php?page=property-plugin-settings') . '">Property Plugin Settings</a>'); ?></p>
+            <div class="ppg-cards">
+
+                <div class="ppg-card">
+                    <div class="ppg-card-icon"><span class="dashicons dashicons-format-image"></span></div>
+                    <h3><?php _e('Banner &amp; Header', 'property-plugin'); ?></h3>
+                    <ul>
+                        <li><?php _e('Upload or change the <strong>banner image</strong> (recommended 1920×600px)', 'property-plugin'); ?></li>
+                        <li><?php _e('Set banner subtitle text', 'property-plugin'); ?></li>
+                        <li><?php _e('Adjust banner height (200–800px)', 'property-plugin'); ?></li>
+                        <li><?php _e('Change overlay opacity and color for text readability', 'property-plugin'); ?></li>
+                    </ul>
+                    <p class="ppg-where"><?php _e('Found in:', 'property-plugin'); ?> <strong><?php _e('Settings → Banner &amp; Header tab', 'property-plugin'); ?></strong></p>
+                </div>
+
+                <div class="ppg-card">
+                    <div class="ppg-card-icon"><span class="dashicons dashicons-admin-appearance"></span></div>
+                    <h3><?php _e('Colors &amp; Typography', 'property-plugin'); ?></h3>
+                    <ul>
+                        <li><?php _e('Primary, secondary, text, and background colors', 'property-plugin'); ?></li>
+                        <li><?php _e('Property card background color', 'property-plugin'); ?></li>
+                        <li><?php _e('Font family (Arial, Helvetica, Georgia, etc.)', 'property-plugin'); ?></li>
+                        <li><?php _e('Base font size (12–24px)', 'property-plugin'); ?></li>
+                    </ul>
+                    <p class="ppg-where"><?php _e('Found in:', 'property-plugin'); ?> <strong><?php _e('Settings → Colors &amp; Typography tab', 'property-plugin'); ?></strong></p>
+                </div>
+
+                <div class="ppg-card">
+                    <div class="ppg-card-icon"><span class="dashicons dashicons-admin-generic"></span></div>
+                    <h3><?php _e('General Settings', 'property-plugin'); ?></h3>
+                    <ul>
+                        <li><?php _e('Header text (main title on the listings page)', 'property-plugin'); ?></li>
+                        <li><?php _e('Properties per page (pagination updates automatically)', 'property-plugin'); ?></li>
+                        <li><?php _e('Default currency — USD, EUR, GBP, INR, PKR', 'property-plugin'); ?></li>
+                        <li><?php _e('Enable / disable preloader animation', 'property-plugin'); ?></li>
+                        <li><?php _e('Enable / disable property compare feature', 'property-plugin'); ?></li>
+                    </ul>
+                    <p class="ppg-where"><?php _e('Found in:', 'property-plugin'); ?> <strong><?php _e('Settings → General tab', 'property-plugin'); ?></strong></p>
+                </div>
+
+                <div class="ppg-card">
+                    <div class="ppg-card-icon"><span class="dashicons dashicons-layout"></span></div>
+                    <h3><?php _e('Property Card', 'property-plugin'); ?></h3>
+                    <ul>
+                        <li><?php _e('Switch between <strong>Grid</strong> or <strong>List</strong> layout', 'property-plugin'); ?></li>
+                        <li><?php _e('Show / hide status badge (For Sale, For Rent, etc.)', 'property-plugin'); ?></li>
+                        <li><?php _e('Show / hide property area', 'property-plugin'); ?></li>
+                        <li><?php _e('Show / hide full address', 'property-plugin'); ?></li>
+                    </ul>
+                    <p class="ppg-where"><?php _e('Found in:', 'property-plugin'); ?> <strong><?php _e('Settings → Property Card tab', 'property-plugin'); ?></strong></p>
+                </div>
+
+                <div class="ppg-card">
+                    <div class="ppg-card-icon"><span class="dashicons dashicons-email"></span></div>
+                    <h3><?php _e('Contact &amp; Lead Form', 'property-plugin'); ?></h3>
+                    <ul>
+                        <li><?php _e('Set contact email and phone displayed on property pages', 'property-plugin'); ?></li>
+                        <li><?php _e('Enable / disable the lead capture form on property detail pages', 'property-plugin'); ?></li>
+                        <li><?php _e('Customize the lead form title text', 'property-plugin'); ?></li>
+                    </ul>
+                    <p class="ppg-where"><?php _e('Found in:', 'property-plugin'); ?> <strong><?php _e('Settings → Contact &amp; Lead Form tab', 'property-plugin'); ?></strong></p>
+                </div>
+
+                <div class="ppg-card">
+                    <div class="ppg-card-icon"><span class="dashicons dashicons-category"></span></div>
+                    <h3><?php _e('Custom Taxonomies', 'property-plugin'); ?></h3>
+                    <ul>
+                        <li><?php _e('Create extra property categories like <em>Floors</em>, <em>Year Built</em>, <em>Parking</em>', 'property-plugin'); ?></li>
+                        <li><?php _e('Delete taxonomies you no longer need', 'property-plugin'); ?></li>
+                        <li><?php _e('Taxonomies appear as filter options on the frontend automatically', 'property-plugin'); ?></li>
+                    </ul>
+                    <p class="ppg-where"><?php _e('Found in:', 'property-plugin'); ?> <strong><?php _e('Settings → Custom Taxonomies tab', 'property-plugin'); ?></strong></p>
+                </div>
+
+                <div class="ppg-card">
+                    <div class="ppg-card-icon"><span class="dashicons dashicons-admin-network"></span></div>
+                    <h3><?php _e('Google Maps API Key', 'property-plugin'); ?></h3>
+                    <ul>
+                        <li><?php _e('Enables address <strong>autocomplete</strong> in the search bar', 'property-plugin'); ?></li>
+                        <li><?php _e('Get a key from Google Cloud Console (Places API + Maps JS API)', 'property-plugin'); ?></li>
+                    </ul>
+                    <p class="ppg-where"><?php _e('Found in:', 'property-plugin'); ?> <strong><?php _e('Settings → API Keys tab', 'property-plugin'); ?></strong></p>
+                </div>
+
+                <div class="ppg-card">
+                    <div class="ppg-card-icon"><span class="dashicons dashicons-admin-tools"></span></div>
+                    <h3><?php _e('Advanced', 'property-plugin'); ?></h3>
+                    <ul>
+                        <li><?php _e('Add <strong>Custom CSS</strong> to override any plugin style', 'property-plugin'); ?></li>
+                        <li><?php _e('Enter Google Analytics 4 Measurement ID for tracking', 'property-plugin'); ?></li>
+                    </ul>
+                    <p class="ppg-where"><?php _e('Found in:', 'property-plugin'); ?> <strong><?php _e('Settings → Advanced tab', 'property-plugin'); ?></strong></p>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Layout Note -->
+        <div class="ppg-section ppg-info-box">
+            <h3><span class="dashicons dashicons-info"></span> <?php _e('About Page Layout', 'property-plugin'); ?></h3>
+            <p><?php _e('When the <code>[property_plugin]</code> shortcode is detected on a page, the plugin <strong>automatically switches to a full-width layout</strong> — your theme\'s sidebar is hidden on that page only. This ensures the property listings have maximum space. Your other pages remain unaffected.', 'property-plugin'); ?></p>
+        </div>
+
+        <!-- FAQ -->
+        <div class="ppg-section">
+            <h2><span class="dashicons dashicons-editor-help"></span> <?php _e('Frequently Asked Questions', 'property-plugin'); ?></h2>
+            <div class="ppg-faq">
+                <div class="ppg-faq-item">
+                    <h4><?php _e('Can I use the shortcode on multiple pages?', 'property-plugin'); ?></h4>
+                    <p><?php _e('Yes! Each instance renders independently with its own container. You can have property listings on your homepage, a dedicated listings page, or anywhere else.', 'property-plugin'); ?></p>
+                </div>
+                <div class="ppg-faq-item">
+                    <h4><?php _e('Where do I add properties (listings)?', 'property-plugin'); ?></h4>
+                    <p><?php _e('After activating the plugin you\'ll see a <strong>Properties</strong> menu item in the left sidebar of WP Admin. Add properties there — they\'ll automatically appear wherever the shortcode is placed.', 'property-plugin'); ?></p>
+                </div>
+                <div class="ppg-faq-item">
+                    <h4><?php _e('How do I change the banner image?', 'property-plugin'); ?></h4>
+                    <p><?php printf(__('Go to <a href="%s">Property Plugin Settings → Banner &amp; Header</a>, click "Upload Image", select from your Media Library or upload a new file (1920×600px recommended), then click Save All Changes.', 'property-plugin'), admin_url('admin.php?page=property-plugin-settings')); ?></p>
+                </div>
+                <div class="ppg-faq-item">
+                    <h4><?php _e('Why is Google autocomplete not working in the search bar?', 'property-plugin'); ?></h4>
+                    <p><?php _e('Make sure you\'ve added a valid Google Maps API key under Settings → API Keys, and that both <strong>Places API</strong> and <strong>Maps JavaScript API</strong> are enabled in your Google Cloud Console project.', 'property-plugin'); ?></p>
+                </div>
+                <div class="ppg-faq-item">
+                    <h4><?php _e('Can I use the shortcode inside Gutenberg blocks?', 'property-plugin'); ?></h4>
+                    <p><?php _e('Yes. Add a <strong>Shortcode block</strong> and paste <code>[property_plugin]</code> inside it. The React frontend will render in place.', 'property-plugin'); ?></p>
+                </div>
+                <div class="ppg-faq-item">
+                    <h4><?php _e('How does pagination work?', 'property-plugin'); ?></h4>
+                    <p><?php _e('The plugin shows 6 posts per page by default (configurable in General settings). Pagination is dynamic — it recalculates automatically when you add or remove properties.', 'property-plugin'); ?></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer CTA -->
+        <div class="ppg-footer">
+            <a href="<?php echo admin_url('admin.php?page=property-plugin-settings'); ?>" class="button button-primary button-hero">
+                <span class="dashicons dashicons-admin-generic" style="vertical-align:middle; margin-right:5px;"></span>
+                <?php _e('Open Plugin Settings', 'property-plugin'); ?>
+            </a>
+            <a href="<?php echo admin_url('edit.php?post_type=property'); ?>" class="button button-secondary button-hero">
+                <span class="dashicons dashicons-building" style="vertical-align:middle; margin-right:5px;"></span>
+                <?php _e('Manage Properties', 'property-plugin'); ?>
+            </a>
+        </div>
+    </div>
+
+    <style>
+        .property-plugin-guide { max-width: 1100px; margin: 20px auto; }
+
+        /* Header */
+        .ppg-header { background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); color: #fff; border-radius: 8px; padding: 30px 35px; margin-bottom: 24px; }
+        .ppg-header-inner { display: flex; align-items: center; gap: 20px; }
+        .ppg-logo { font-size: 48px; width: 48px; height: 48px; color: #fff; background: rgba(255,255,255,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .ppg-header h1 { color: #fff; margin: 0; font-size: 24px; }
+        .ppg-subtitle { color: rgba(255,255,255,0.85); margin: 4px 0 0; font-size: 14px; }
+
+        /* Quick Start */
+        .ppg-quickstart { background: #fff; border: 1px solid #c3c4c7; border-radius: 8px; padding: 25px 30px; margin-bottom: 24px; }
+        .ppg-quickstart h2 { margin: 0 0 20px; display: flex; align-items: center; gap: 8px; color: #1d2327; }
+        .ppg-quickstart h2 .dashicons { color: #d63638; }
+        .ppg-steps { display: flex; gap: 20px; flex-wrap: wrap; }
+        .ppg-step { flex: 1; min-width: 280px; background: #f6f7f7; border-radius: 8px; padding: 20px; position: relative; }
+        .ppg-step-num { width: 36px; height: 36px; background: #2563eb; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; margin-bottom: 12px; }
+        .ppg-step h3 { margin: 0 0 8px; font-size: 15px; }
+        .ppg-step p { margin: 0 0 10px; color: #50575e; font-size: 13px; }
+
+        /* Shortcode Box */
+        .ppg-shortcode-box { display: flex; align-items: center; gap: 10px; margin: 10px 0; flex-wrap: wrap; }
+        .ppg-shortcode-box code { background: #1d2327; color: #4ade80; padding: 8px 16px; border-radius: 4px; font-size: 15px; font-family: monospace; flex: 1; min-width: 140px; }
+        .ppg-note { font-size: 12px; color: #646970; font-style: italic; margin-top: 4px; }
+
+        /* Sections */
+        .ppg-section { background: #fff; border: 1px solid #c3c4c7; border-radius: 8px; padding: 25px 30px; margin-bottom: 24px; }
+        .ppg-section h2 { margin: 0 0 18px; display: flex; align-items: center; gap: 8px; color: #1d2327; border-bottom: 2px solid #2563eb; padding-bottom: 12px; }
+        .ppg-section h2 .dashicons { color: #2563eb; }
+        .ppg-intro { color: #50575e; margin-bottom: 18px; }
+        .ppg-table code.ppg-code { background: #f0f0f1; padding: 4px 8px; border-radius: 3px; font-size: 13px; color: #1d2327; }
+
+        /* Cards Grid */
+        .ppg-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+        .ppg-card { background: #f6f7f7; border-radius: 8px; padding: 20px; border-top: 4px solid #2563eb; }
+        .ppg-card-icon { margin-bottom: 10px; }
+        .ppg-card-icon .dashicons { font-size: 28px; width: 28px; height: 28px; color: #2563eb; }
+        .ppg-card h3 { margin: 0 0 10px; font-size: 14px; color: #1d2327; }
+        .ppg-card ul { margin: 0; padding-left: 18px; list-style: disc; }
+        .ppg-card ul li { color: #50575e; font-size: 13px; margin-bottom: 5px; }
+        .ppg-where { margin: 12px 0 0; font-size: 12px; color: #646970; padding-top: 10px; border-top: 1px dashed #c3c4c7; }
+
+        /* Info Box */
+        .ppg-info-box { background: #f0f6fc; border-left: 5px solid #2563eb; }
+        .ppg-info-box h3 { margin: 0 0 10px; display: flex; align-items: center; gap: 8px; color: #1d2327; }
+        .ppg-info-box h3 .dashicons { color: #2563eb; }
+        .ppg-info-box p { margin: 0; color: #3c434a; }
+        .ppg-info-box code { background: #fff; padding: 2px 6px; border: 1px solid #c3c4c7; border-radius: 3px; }
+
+        /* FAQ */
+        .ppg-faq-item { border-bottom: 1px solid #f0f0f1; padding: 14px 0; }
+        .ppg-faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .ppg-faq-item h4 { margin: 0 0 8px; color: #1d2327; font-size: 14px; }
+        .ppg-faq-item p { margin: 0; color: #50575e; font-size: 13px; }
+        .ppg-faq-item code { background: #f0f0f1; padding: 2px 6px; border-radius: 3px; font-size: 12px; }
+
+        /* Footer */
+        .ppg-footer { background: #fff; border: 1px solid #c3c4c7; border-radius: 8px; padding: 25px 30px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
+
+        .ppg-footer a .dashicons {
+            line-height: 1 !important;
+            vertical-align: middle !important;
+            margin-top: -2px;
+        }
+
+
+        /* Copy button feedback */
+        .ppg-copy-btn.copied { background: #00a32a !important; color: #fff !important; border-color: #00a32a !important; }
+
+        @media (max-width: 600px) {
+            .ppg-steps { flex-direction: column; }
+            .ppg-cards { grid-template-columns: 1fr; }
+            .ppg-header-inner { flex-direction: column; text-align: center; }
+        }
+    </style>
+
+    <script>
+    jQuery(document).ready(function($) {
+        // Copy shortcode to clipboard
+        $(document).on('click', '.ppg-copy-btn', function() {
+            var text = $(this).data('copy');
+            var $btn = $(this);
+
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).then(function() {
+                    showCopied($btn);
+                });
+            } else {
+                // Fallback
+                var $tmp = $('<textarea>');
+                $('body').append($tmp);
+                $tmp.val(text).select();
+                document.execCommand('copy');
+                $tmp.remove();
+                showCopied($btn);
+            }
+
+            function showCopied($el) {
+                var orig = $el.html();
+                $el.addClass('copied').html('<span class="dashicons dashicons-yes"></span> Copied!');
+                setTimeout(function() {
+                    $el.removeClass('copied').html(orig);
+                }, 2000);
+            }
+        });
+    });
+    </script>
+    <?php
+}
