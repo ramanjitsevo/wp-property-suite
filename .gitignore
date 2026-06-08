@@ -1,5 +1,12 @@
 # Dependencies
 node_modules/
+package-lock.json
+
+# Development files
+README.md
+
+# Logs
+*.log
 
 # OS files
 .DS_Store
@@ -9,14 +16,11 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Other plugins
+# classic editor
 classic-editor/
-wp-mail-smtp/
-wpforms-lite/
 
-# Logs
-*.log
+# Source files (React development)
+src/
 
-# Keep these files tracked:
-# - Property_Plugin_Loader.php (WordPress sees this)
-# - Property_Plugin/ (all plugin code)
+# Keep build folder (it's needed for production)
+# build/ is tracked in git
