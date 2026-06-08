@@ -8,6 +8,62 @@ const STATUS_LABELS = {
   'rented': 'Rented',
 };
 
+const FEATURE_EXCLUDE_FIELDS = [
+  'id',
+  'title',
+  'content',
+  'excerpt',
+  'date',
+  'thumbnail',
+  'thumbnail_url',
+  'price',
+  'area',
+  'address',
+  'city',
+  'state',
+  'zipcode',
+  'country',
+  'status',
+  'property_type',
+  'location',
+  'bedrooms',
+  'bathrooms',
+  'floor',
+  'gallery',
+  'gallery_urls',
+  'garage',
+  'agent',
+  'agent_name',
+  'agent_phone',
+  'agent_email',
+  'agent_photo',
+  'agentName',
+  'agentPhone',
+  'agentEmail',
+  'agentPhoto',
+  'additional',
+  'additional_details',
+  'additionalDetails',
+  'faq',
+  'faqs',
+  'property_faqs',
+  'propertyFaqs',
+];
+
+const normalizeArrayField = (rawValue) => {
+  if (Array.isArray(rawValue)) return rawValue;
+  if (typeof rawValue === 'string' && rawValue.trim()) {
+    try {
+      const parsed = JSON.parse(rawValue);
+      return Array.isArray(parsed) ? parsed : [parsed];
+    } catch (e) {
+      return [rawValue];
+    }
+  }
+  if (rawValue && typeof rawValue === 'object') return [rawValue];
+  return [];
+};
+
 function PropertySingle({ property, onBack, settings }) {
   const [activeTab, setActiveTab] = useState('overview');
   const [mainImage, setMainImage] = useState(0);
@@ -24,12 +80,8 @@ function PropertySingle({ property, onBack, settings }) {
   });
 
   const contactFormRef = useRef(null);
-
-  // Derive dynamic values
   const statusLabel = STATUS_LABELS[property?.status] || property?.status || 'For Sale';
-  const agentPhoto = settings?.agentPhoto || 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100';
 
-  // Build gallery from property data
   const galleryImages = (() => {
     if (property?.gallery && property.gallery.length > 0) {
       const thumb = property.thumbnail;
@@ -40,7 +92,56 @@ function PropertySingle({ property, onBack, settings }) {
     return [property?.thumbnail || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800'];
   })();
 
-  // Load favorite state from localStorage
+  const additionalDetails = normalizeArrayField(
+    property?.additional_details || property?.additionalDetails || property?.additional || null
+  );
+
+  const customFaqItems = normalizeArrayField(property?.faqs || property?.faq || property?.property_faqs || property?.propertyFaqs)
+    .map((item, index) => {
+      if (item === null || item === undefined) return null;
+      if (typeof item === 'object') {
+        const question = item.question || item.title || item.label || `Question ${index + 1}`;
+        const answer = item.answer || item.value || item.text || item.description || '';
+        return question && answer ? { question, answer } : null;
+      }
+      return { question: `Question ${index + 1}`, answer: String(item) };
+    })
+    .filter(Boolean);
+
+  const fallbackFaqItems = [
+    {
+      question: `What is the price of ${property?.title || 'this property'}?`,
+      answer: property?.price ? `The listed price is ${property.price}.` : 'Please request information for the latest property price.',
+    },
+    {
+      question: 'Where is this property located?',
+      answer: [property?.address, property?.city, property?.state, property?.zipcode, property?.country].filter(Boolean).join(', ') || 'The exact location details are available on request.',
+    },
+    {
+      question: 'How can I schedule a property visit?',
+      answer: 'Use the Schedule a Tour button or submit the inquiry form on this page to request a visit.',
+    },
+    {
+      question: 'What are the key property features?',
+      answer: [
+        property?.bedrooms ? `${property.bedrooms} bedroom(s)` : '',
+        property?.bathrooms ? `${property.bathrooms} bathroom(s)` : '',
+        property?.area ? `${property.area} sq ft` : '',
+        property?.garage ? `${property.garage} garage space(s)` : '',
+      ].filter(Boolean).join(', ') || 'Key features are listed in the Features tab.',
+    },
+  ];
+
+  const faqItems = customFaqItems.length ? customFaqItems : fallbackFaqItems;
+
+  const tabs = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'features', label: 'Features' },
+    { id: 'location', label: 'Location' },
+    { id: 'additional', label: 'Additional Details' },
+    { id: 'faq', label: 'FAQ' },
+  ];
+
   useEffect(() => {
     if (property?.id) {
       const favs = JSON.parse(localStorage.getItem('property_favorites') || '[]');
@@ -52,12 +153,10 @@ function PropertySingle({ property, onBack, settings }) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Scroll to contact form
   const scrollToContact = () => {
     contactFormRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Schedule tour — external URL or scroll to form
   const handleScheduleTour = () => {
     if (settings?.scheduleTourUrl) {
       window.open(settings.scheduleTourUrl, '_blank');
@@ -66,7 +165,6 @@ function PropertySingle({ property, onBack, settings }) {
     }
   };
 
-  // Contact form submit via REST API
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -102,7 +200,6 @@ function PropertySingle({ property, onBack, settings }) {
     }
   };
 
-  // Toggle favorite
   const toggleFavorite = () => {
     const favs = JSON.parse(localStorage.getItem('property_favorites') || '[]');
     let updated;
@@ -115,7 +212,6 @@ function PropertySingle({ property, onBack, settings }) {
     setIsFavorite(!isFavorite);
   };
 
-  // Share property
   const handleShare = async () => {
     const url = window.location.href;
     const title = property?.title || 'Check out this property';
@@ -127,45 +223,72 @@ function PropertySingle({ property, onBack, settings }) {
     }
   };
 
-  // Social share URLs
   const getPageUrl = () => encodeURIComponent(window.location.href);
   const getPageTitle = () => encodeURIComponent(property?.title || 'Check out this property');
+
+  const renderBottomBar = () => (
+    <div className="property-bottom-bar property-bottom-bar-spaced">
+      <div className="bottom-price">
+        <span className="price-amount">{property.price}</span>
+        <span className="price-badge">{statusLabel}</span>
+      </div>
+      <div className="bottom-actions">
+        <a href={`tel:${(settings?.agentPhone || '').replace(/[^+\d]/g, '')}`} className="btn-call">
+          <i className="fas fa-phone"></i> {settings?.agentPhone || 'Call Agent'}
+        </a>
+        <button className="btn-schedule" onClick={handleScheduleTour}>
+          <i className="far fa-calendar-check"></i> Schedule a Tour
+        </button>
+        <button className="btn-request-info" onClick={scrollToContact}>
+          Request Information
+        </button>
+      </div>
+    </div>
+  );
 
   if (!property) {
     return <div className="property-plugin-loading">Loading property details...</div>;
   }
 
   return (
-    <div className="property-single-page">
-      {/* Breadcrumb */}
-      <div className="property-breadcrumb">
+    <article className="property-single-page" itemScope itemType="https://schema.org/RealEstateListing">
+      {faqItems.length > 0 && (
+        <script type="application/ld+json">
+          {JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: faqItems.map((item) => ({
+              '@type': 'Question',
+              name: item.question,
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: item.answer,
+              },
+            })),
+          })}
+        </script>
+      )}
+
+      <nav className="property-breadcrumb" aria-label="Breadcrumb">
         <div className="property-plugin-container">
-          <span onClick={onBack} className="breadcrumb-link">Home</span>
+          <button type="button" onClick={onBack} className="breadcrumb-link">Home</button>
           <span className="breadcrumb-separator">›</span>
-          <span onClick={onBack} className="breadcrumb-link">Properties</span>
+          <button type="button" onClick={onBack} className="breadcrumb-link">Properties</button>
           <span className="breadcrumb-separator">›</span>
           <span className="breadcrumb-current">{property.title}</span>
         </div>
-      </div>
+      </nav>
 
-      {/* Main Content Layout */}
       <div className="property-plugin-container">
         <div className="property-single-layout">
-
-          {/* Left Column - Gallery & Details */}
           <div className="property-single-main">
-
-            {/* Image Gallery */}
             <div className="property-gallery">
               <div className="gallery-main">
                 <img
-                  src={isFullscreen ? galleryImages[mainImage] : galleryImages[mainImage]}
+                  src={galleryImages[mainImage]}
                   alt={property.title}
-                  className="gallery-main-image"
-                  style={isFullscreen ? {
-                    position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-                    objectFit: 'contain', zIndex: 9999, background: '#000', cursor: 'zoom-out'
-                  } : {}}
+                  className={`gallery-main-image ${isFullscreen ? 'gallery-main-image-fullscreen' : ''}`}
+                  itemProp="image"
                   onClick={() => isFullscreen && setIsFullscreen(false)}
                 />
                 {!isFullscreen && (
@@ -173,7 +296,7 @@ function PropertySingle({ property, onBack, settings }) {
                     <div className="gallery-badge">{statusLabel}</div>
                     <div className="gallery-actions">
                       <button className="gallery-action-btn" title="Add to favorites" onClick={toggleFavorite}>
-                        <i className={isFavorite ? 'fas fa-heart' : 'far fa-heart'} style={isFavorite ? { color: '#e53e3e' } : {}}></i>
+                        <i className={`${isFavorite ? 'fas' : 'far'} fa-heart ${isFavorite ? 'favorite-icon-active' : ''}`}></i>
                       </button>
                       <button className="gallery-action-btn" title="Fullscreen" onClick={() => setIsFullscreen(true)}>
                         <i className="fas fa-expand-arrows-alt"></i>
@@ -183,15 +306,15 @@ function PropertySingle({ property, onBack, settings }) {
                   </>
                 )}
                 {isFullscreen && (
-                  <div style={{ position: 'fixed', bottom: 30, left: '50%', transform: 'translateX(-50%)', zIndex: 10000, display: 'flex', gap: 10, alignItems: 'center' }}>
-                    <button onClick={() => setMainImage(Math.max(0, mainImage - 1))} style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: 4, cursor: 'pointer' }}>
+                  <div className="gallery-fullscreen-controls">
+                    <button className="gallery-fullscreen-btn" onClick={() => setMainImage(Math.max(0, mainImage - 1))}>
                       <i className="fas fa-chevron-left"></i>
                     </button>
-                    <span style={{ color: '#fff' }}>{mainImage + 1} / {galleryImages.length}</span>
-                    <button onClick={() => setMainImage(Math.min(galleryImages.length - 1, mainImage + 1))} style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: 4, cursor: 'pointer' }}>
+                    <span className="gallery-fullscreen-count">{mainImage + 1} / {galleryImages.length}</span>
+                    <button className="gallery-fullscreen-btn" onClick={() => setMainImage(Math.min(galleryImages.length - 1, mainImage + 1))}>
                       <i className="fas fa-chevron-right"></i>
                     </button>
-                    <button onClick={() => setIsFullscreen(false)} style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: 4, cursor: 'pointer' }}>
+                    <button className="gallery-fullscreen-btn" onClick={() => setIsFullscreen(false)}>
                       <i className="fas fa-times"></i>
                     </button>
                   </div>
@@ -224,40 +347,39 @@ function PropertySingle({ property, onBack, settings }) {
               )}
             </div>
 
-            {/* Tabs Navigation */}
-            <div className="property-tabs">
-              {['Overview', 'Features', 'Location'].map((tab) => (
+            <nav className="property-tabs" aria-label="Property details">
+              {tabs.map((tab) => (
                 <button
-                  key={tab}
-                  className={`property-tab ${activeTab === tab.toLowerCase() ? 'active' : ''}`}
-                  onClick={() => setActiveTab(tab.toLowerCase())}
+                  key={tab.id}
+                  className={`property-tab ${activeTab === tab.id ? 'active' : ''}`}
+                  onClick={() => setActiveTab(tab.id)}
+                  aria-pressed={activeTab === tab.id}
                 >
-                  {tab}
+                  {tab.label}
                 </button>
               ))}
-            </div>
+            </nav>
 
-            {/* === OVERVIEW TAB === */}
             {activeTab === 'overview' && (
-              <div className="property-overview-section">
+              <section className="property-overview-section" aria-labelledby="property-overview-heading">
                 <div className="overview-two-column">
                   <div className="overview-description">
-                    <h3>About This Property</h3>
+                    <h2 id="property-overview-heading">About This Property</h2>
                     {property.content ? (
-                      <div dangerouslySetInnerHTML={{ __html: property.content }} />
+                      <div itemProp="description" dangerouslySetInnerHTML={{ __html: property.content }} />
                     ) : (
                       <p><em>No description available for this property.</em></p>
                     )}
                   </div>
                   <div className="overview-map">
-                    <h3>Property Location</h3>
+                    <h2>Property Location</h2>
                     <div className="map-placeholder">
                       {property.address ? (
-                        <div style={{ textAlign: 'center' }}>
+                        <address className="map-address" itemProp="address">
                           <div className="map-pin"><i className="fas fa-map-marker-alt"></i></div>
-                          <p style={{ margin: '8px 0 4px', fontWeight: 600 }}>{property.address}</p>
+                          <p className="map-address-line">{property.address}</p>
                           {[property.city, property.state, property.zipcode].filter(Boolean).join(', ')}
-                        </div>
+                        </address>
                       ) : (
                         <>
                           <div className="map-pin"><i className="fas fa-map-marker-alt"></i></div>
@@ -267,105 +389,66 @@ function PropertySingle({ property, onBack, settings }) {
                     </div>
                   </div>
                 </div>
-
-                {/* Bottom Price Bar */}
-                <div className="property-bottom-bar">
-                  <div className="bottom-price">
-                    <span className="price-amount">{property.price}</span>
-                    <span className="price-badge">{statusLabel}</span>
-                  </div>
-                  <div className="bottom-actions">
-                    <a href={`tel:${(settings?.agentPhone || '').replace(/[^+\d]/g, '')}`} className="btn-call">
-                      <i className="fas fa-phone"></i> {settings?.agentPhone || 'Call Agent'}
-                    </a>
-                    <button className="btn-schedule" onClick={handleScheduleTour}>
-                      <i className="far fa-calendar-check"></i> Schedule a Tour
-                    </button>
-                    <button className="btn-request-info" onClick={scrollToContact}>
-                      Request Information
-                    </button>
-                  </div>
-                </div>
-              </div>
+                {renderBottomBar()}
+              </section>
             )}
 
-            {/* === FEATURES TAB === */}
             {activeTab === 'features' && (
-              <div className="property-overview-section">
-                <h3 style={{ marginBottom: 20 }}>Property Features & Details</h3>
-                <div className="features-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
+              <section className="property-overview-section" aria-labelledby="property-features-heading">
+                <h2 id="property-features-heading" className="section-heading">Property Features & Details</h2>
+                <dl className="features-grid">
                   {[
-                    { icon: 'fa-bed',        label: 'Bedrooms',    value: property.bedrooms || '0' },
-                    { icon: 'fa-bath',       label: 'Bathrooms',   value: property.bathrooms || '0' },
-                    { icon: 'fa-car',        label: 'Garage',      value: property.garage ? `${property.garage} car(s)` : 'No garage' },
-                    { icon: 'fa-vector-square', label: 'Area',     value: property.area ? `${property.area} sq ft` : 'N/A' },
-                    { icon: 'fa-building',   label: 'Property Type', value: property.property_type || 'N/A' },
-                    { icon: 'fa-layer-group', label: 'Floor',      value: property.floor || 'N/A' },
-                    { icon: 'fa-map-marker-alt', label: 'City',    value: property.city || 'N/A' },
-                    { icon: 'fa-globe',      label: 'Country',     value: property.country || 'N/A' },
+                    { icon: 'fa-bed', label: 'Bedrooms', value: property.bedrooms || '0' },
+                    { icon: 'fa-bath', label: 'Bathrooms', value: property.bathrooms || '0' },
+                    { icon: 'fa-car', label: 'Garage', value: property.garage ? `${property.garage} car(s)` : 'No garage' },
+                    { icon: 'fa-vector-square', label: 'Area', value: property.area ? `${property.area} sq ft` : 'N/A' },
+                    { icon: 'fa-building', label: 'Property Type', value: property.property_type || 'N/A' },
+                    { icon: 'fa-layer-group', label: 'Floor', value: property.floor || 'N/A' },
+                    { icon: 'fa-map-marker-alt', label: 'City', value: property.city || 'N/A' },
+                    { icon: 'fa-globe', label: 'Country', value: property.country || 'N/A' },
                   ].filter(f => f.value !== 'N/A' && f.value !== '0' || ['Bedrooms', 'Bathrooms'].includes(f.label)).map((f, i) => (
-                    <div key={i} style={{ background: '#f8f9fa', borderRadius: 10, padding: '18px', display: 'flex', alignItems: 'center', gap: 14 }}>
-                      <i className={`fas ${f.icon}`} style={{ fontSize: 22, color: settings?.primaryColor || '#2196f3' }}></i>
+                    <div key={i} className="feature-detail-card">
+                      <i className={`fas ${f.icon} feature-detail-icon`}></i>
                       <div>
-                        <div style={{ fontSize: 12, color: '#888' }}>{f.label}</div>
-                        <div style={{ fontWeight: 600, color: '#1a1a2e' }}>{f.value}</div>
+                        <dt className="feature-detail-label">{f.label}</dt>
+                        <dd className="feature-detail-value">{f.value}</dd>
                       </div>
                     </div>
                   ))}
-
-                  {/* Auto-discovered custom taxonomies */}
-                  {(() => {
-                    const excludeFields = ['id','title','content','excerpt','date','thumbnail','price','area','address','city','state','zipcode','country','status','property_type','location','bedrooms','bathrooms','floor','gallery','garage'];
-                    const customs = Object.keys(property).filter(k =>
-                      !excludeFields.includes(k) && property[k] && property[k] !== 'N/A' && property[k] !== ''
-                    );
-                    return customs.map(slug => {
+                  {Object.keys(property)
+                    .filter(key => !FEATURE_EXCLUDE_FIELDS.includes(key) && property[key] && property[key] !== 'N/A' && property[key] !== '')
+                    .map((slug) => {
                       const label = slug.replace(/property-/g, '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                      const rawValue = property[slug];
+                      const displayValue = typeof rawValue === 'object'
+                        ? rawValue.name || rawValue.title || JSON.stringify(rawValue)
+                        : rawValue;
+
                       return (
-                        <div key={slug} style={{ background: '#f8f9fa', borderRadius: 10, padding: '18px', display: 'flex', alignItems: 'center', gap: 14 }}>
-                          <i className="fas fa-tag" style={{ fontSize: 22, color: settings?.primaryColor || '#2196f3' }}></i>
+                        <div key={slug} className="feature-detail-card">
+                          <i className="fas fa-tag feature-detail-icon"></i>
                           <div>
-                            <div style={{ fontSize: 12, color: '#888' }}>{label}</div>
-                            <div style={{ fontWeight: 600, color: '#1a1a2e' }}>{property[slug]}</div>
+                            <dt className="feature-detail-label">{label}</dt>
+                            <dd className="feature-detail-value">{displayValue}</dd>
                           </div>
                         </div>
                       );
-                    });
-                  })()}
-                </div>
-
-                {/* Bottom Price Bar */}
-                <div className="property-bottom-bar" style={{ marginTop: 30 }}>
-                  <div className="bottom-price">
-                    <span className="price-amount">{property.price}</span>
-                    <span className="price-badge">{statusLabel}</span>
-                  </div>
-                  <div className="bottom-actions">
-                    <a href={`tel:${(settings?.agentPhone || '').replace(/[^+\d]/g, '')}`} className="btn-call">
-                      <i className="fas fa-phone"></i> {settings?.agentPhone || 'Call Agent'}
-                    </a>
-                    <button className="btn-schedule" onClick={handleScheduleTour}>
-                      <i className="far fa-calendar-check"></i> Schedule a Tour
-                    </button>
-                    <button className="btn-request-info" onClick={scrollToContact}>
-                      Request Information
-                    </button>
-                  </div>
-                </div>
-              </div>
+                    })}
+                </dl>
+                {renderBottomBar()}
+              </section>
             )}
 
-            {/* === LOCATION TAB === */}
             {activeTab === 'location' && (
-              <div className="property-overview-section">
-                <h3 style={{ marginBottom: 20 }}>Property Location</h3>
-                <div className="map-placeholder" style={{ maxWidth: '100%', minHeight: 200 }}>
+              <section className="property-overview-section" aria-labelledby="property-location-heading">
+                <h2 id="property-location-heading" className="section-heading">Property Location</h2>
+                <div className="map-placeholder map-placeholder-compact">
                   {property.address ? (
-                    <div style={{ textAlign: 'center' }}>
-                      <div className="map-pin"><i className="fas fa-map-marker-alt" style={{ fontSize: 36 }}></i></div>
-                      <p style={{ margin: '12px 0 4px', fontWeight: 700, fontSize: 16 }}>{property.address}</p>
-                      <p style={{ color: '#555' }}>{[property.city, property.state, property.zipcode, property.country].filter(Boolean).join(', ')}</p>
-                    </div>
+                    <address className="map-address" itemProp="address">
+                      <div className="map-pin map-pin-compact"><i className="fas fa-map-marker-alt"></i></div>
+                      <p className="map-address-line map-address-line-large">{property.address}</p>
+                      <p className="map-address-region">{[property.city, property.state, property.zipcode, property.country].filter(Boolean).join(', ')}</p>
+                    </address>
                   ) : (
                     <>
                       <div className="map-pin"><i className="fas fa-map-marker-alt"></i></div>
@@ -374,60 +457,86 @@ function PropertySingle({ property, onBack, settings }) {
                   )}
                 </div>
 
-                {/* Location details list */}
-                <div style={{ marginTop: 24, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 30px' }}>
+                <dl className="location-detail-list">
                   {[
                     { label: 'Address', value: property.address },
                     { label: 'City', value: property.city },
                     { label: 'State', value: property.state },
                     { label: 'Zip Code', value: property.zipcode },
                     { label: 'Country', value: property.country },
-                  ].filter(r => r.value).map(r => (
-                    <div key={r.label} className="info-row" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f0f0f0', paddingBottom: 8 }}>
-                      <span className="info-label">{r.label}</span>
-                      <span className="info-value">{r.value}</span>
+                  ].filter(row => row.value).map(row => (
+                    <div key={row.label} className="info-row location-info-row">
+                      <dt className="info-label">{row.label}</dt>
+                      <dd className="info-value">{row.value}</dd>
                     </div>
                   ))}
-                </div>
+                </dl>
+                {renderBottomBar()}
+              </section>
+            )}
 
-                {/* Bottom Price Bar */}
-                <div className="property-bottom-bar" style={{ marginTop: 30 }}>
-                  <div className="bottom-price">
-                    <span className="price-amount">{property.price}</span>
-                    <span className="price-badge">{statusLabel}</span>
-                  </div>
-                  <div className="bottom-actions">
-                    <a href={`tel:${(settings?.agentPhone || '').replace(/[^+\d]/g, '')}`} className="btn-call">
-                      <i className="fas fa-phone"></i> {settings?.agentPhone || 'Call Agent'}
-                    </a>
-                    <button className="btn-schedule" onClick={handleScheduleTour}>
-                      <i className="far fa-calendar-check"></i> Schedule a Tour
-                    </button>
-                    <button className="btn-request-info" onClick={scrollToContact}>
-                      Request Information
-                    </button>
-                  </div>
+            {activeTab === 'additional' && (
+              <section className="property-overview-section" aria-labelledby="property-additional-heading">
+                <h2 id="property-additional-heading" className="section-heading">Additional Details</h2>
+                {additionalDetails.length === 0 ? (
+                  <p><em>No additional details available for this property.</em></p>
+                ) : (
+                  <dl className="additional-details-grid">
+                    {additionalDetails.map((item, idx) => {
+                      if (item === null || item === undefined) return null;
+                      if (typeof item === 'object') {
+                        const label = item.label || item.name || item.title || item.key || `Detail ${idx + 1}`;
+                        const value = item.value || item.text || item.phone || item.email || item.description || JSON.stringify(item);
+                        return (
+                          <div key={idx} className="additional-detail-card">
+                            <dt className="feature-detail-label">{label}</dt>
+                            <dd className="feature-detail-value additional-detail-value">{value}</dd>
+                          </div>
+                        );
+                      }
+                      return (
+                        <div key={idx} className="additional-detail-card">
+                          <dt className="feature-detail-label">{`Detail ${idx + 1}`}</dt>
+                          <dd className="feature-detail-value additional-detail-value">{String(item)}</dd>
+                        </div>
+                      );
+                    })}
+                  </dl>
+                )}
+                {renderBottomBar()}
+              </section>
+            )}
+
+            {activeTab === 'faq' && (
+              <section className="property-overview-section" aria-labelledby="property-faq-heading">
+                <h2 id="property-faq-heading" className="section-heading">Frequently Asked Questions</h2>
+                <div className="property-faq-list">
+                  {faqItems.map((item, idx) => (
+                    <details className="property-faq-item" key={idx}>
+                      <summary>{item.question}</summary>
+                      <p>{item.answer}</p>
+                    </details>
+                  ))}
                 </div>
-              </div>
+                {renderBottomBar()}
+              </section>
             )}
           </div>
 
-          {/* Right Column - Sidebar */}
-          <div className="property-single-sidebar">
-
-            {/* Property Details */}
+          <div className="property-single-sidebar" role="complementary" aria-label="Property summary and inquiry">
             <div className="property-details-card">
               <div className="details-header">
                 <span className="featured-label">{settings?.featuredLabel || 'FEATURED PROPERTY'}</span>
-                <h1 className="property-title">{property.title}</h1>
-                <p className="property-address"><i className="fas fa-map-marker-alt"></i> {property.address}</p>
+                <h1 className="property-title" itemProp="name">{property.title}</h1>
+                <p className="property-address">
+                  <i className="fas fa-map-marker-alt"></i> {property.address}
+                </p>
                 <div className="property-price-large">
                   <span className="price">{property.price}</span>
                   <span className="status-badge">{statusLabel}</span>
                 </div>
               </div>
 
-              {/* Quick Stats */}
               <div className="property-quick-stats">
                 <div className="stat-item">
                   <span className="stat-icon"><i className="fas fa-bed"></i></span>
@@ -458,79 +567,45 @@ function PropertySingle({ property, onBack, settings }) {
                 </div>
               </div>
 
-              {/* Detailed Information */}
               <div className="property-info-list">
+                <h4 className="property-title">Location Detail</h4>
                 <div className="info-row">
-                  <span className="info-label">Property Type:</span>
+                  <span className="info-label"><i className="fas fa-building"></i> Property Type:</span>
                   <span className="info-value">{property.property_type || 'N/A'}</span>
                 </div>
-                <div className="info-row">
-                  <span className="info-label">Property Status:</span>
-                  <span className="info-value">{statusLabel}</span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">Property ID:</span>
-                  <span className="info-value">{property.id}</span>
-                </div>
-
                 {property.city && (
                   <div className="info-row">
-                    <span className="info-label">City:</span>
+                    <span className="info-label"><i className="fas fa-city"></i> City:</span>
                     <span className="info-value">{property.city}</span>
                   </div>
                 )}
                 {property.state && (
                   <div className="info-row">
-                    <span className="info-label">State:</span>
+                    <span className="info-label"><i className="fas fa-map-marked-alt"></i> State:</span>
                     <span className="info-value">{property.state}</span>
                   </div>
                 )}
                 {property.zipcode && (
                   <div className="info-row">
-                    <span className="info-label">Zip Code:</span>
+                    <span className="info-label"><i className="fas fa-mail-bulk"></i> Zip Code:</span>
                     <span className="info-value">{property.zipcode}</span>
                   </div>
                 )}
                 {property.country && (
                   <div className="info-row">
-                    <span className="info-label">Country:</span>
+                    <span className="info-label"><i className="fas fa-globe"></i> Country:</span>
                     <span className="info-value">{property.country}</span>
                   </div>
                 )}
-
-                {/* Custom Taxonomies - Auto Display */}
-                {(() => {
-                  const excludeFields = ['id', 'title', 'content', 'excerpt', 'date', 'thumbnail', 'price', 'area', 'address', 'city', 'state', 'zipcode', 'country', 'status', 'property_type', 'location', 'bedrooms', 'bathrooms', 'floor', 'gallery', 'garage'];
-                  const customTaxonomies = Object.keys(property).filter(key =>
-                    !excludeFields.includes(key) &&
-                    property[key] &&
-                    property[key] !== 'N/A' &&
-                    property[key] !== ''
-                  );
-                  if (customTaxonomies.length === 0) return null;
-                  return customTaxonomies.map(taxSlug => {
-                    const displayName = taxSlug
-                      .replace(/property-/g, '')
-                      .replace(/-/g, ' ')
-                      .replace(/\b\w/g, l => l.toUpperCase());
-                    return (
-                      <div key={taxSlug} className="info-row">
-                        <span className="info-label">{displayName}:</span>
-                        <span className="info-value">{property[taxSlug]}</span>
-                      </div>
-                    );
-                  });
-                })()}
               </div>
             </div>
 
-            {/* Contact Form */}
             <div className="contact-form-card" ref={contactFormRef}>
               <h3>{settings?.contactFormHeading || 'Get More Details'}</h3>
               <p className="form-subtitle">{settings?.contactFormSubtitle || 'Schedule a tour or request more information about this property.'}</p>
 
               {submitSuccess && (
-                <div style={{ background: '#f0fff4', border: '1px solid #c6f6d5', borderRadius: 8, padding: '12px', marginBottom: 12, color: '#276749' }}>
+                <div className="form-alert form-alert-success" role="status">
                   ✓ Thank you! Your inquiry has been sent. We'll be in touch shortly.
                 </div>
               )}
@@ -538,7 +613,8 @@ function PropertySingle({ property, onBack, settings }) {
               <form onSubmit={handleSubmit}>
                 <div className="form-group">
                   <input
-                    type="text" name="name"
+                    type="text"
+                    name="name"
                     placeholder="Your Name*"
                     value={formData.name}
                     onChange={handleInputChange}
@@ -547,7 +623,8 @@ function PropertySingle({ property, onBack, settings }) {
                 </div>
                 <div className="form-group">
                   <input
-                    type="email" name="email"
+                    type="email"
+                    name="email"
                     placeholder="Your Email*"
                     value={formData.email}
                     onChange={handleInputChange}
@@ -556,7 +633,8 @@ function PropertySingle({ property, onBack, settings }) {
                 </div>
                 <div className="form-group">
                   <input
-                    type="tel" name="phone"
+                    type="tel"
+                    name="phone"
                     placeholder="Your Phone Number*"
                     value={formData.phone}
                     onChange={handleInputChange}
@@ -574,7 +652,7 @@ function PropertySingle({ property, onBack, settings }) {
                 </div>
 
                 {submitError && (
-                  <div style={{ background: '#fff5f5', border: '1px solid #fed7d7', borderRadius: 8, padding: '10px', marginBottom: 10, color: '#c53030', fontSize: 13 }}>
+                  <div className="form-alert form-alert-error" role="alert">
                     ⚠ {submitError}
                   </div>
                 )}
@@ -588,35 +666,10 @@ function PropertySingle({ property, onBack, settings }) {
               </form>
             </div>
 
-            {/* Agent Card */}
-            <div className="agent-card">
-              <div className="agent-header">
-                <img
-                  src={agentPhoto}
-                  alt={settings?.agentName || 'Agent'}
-                  className="agent-photo"
-                />
-                <div className="agent-info">
-                  <h4>{settings?.agentName || 'Agent'}</h4>
-                  <p>{settings?.agentRole || 'Property Agent'}</p>
-                </div>
-                <div className="agent-contact">
-                  <a href={`tel:${(settings?.agentPhone || '').replace(/[^+\d]/g, '')}`} className="btn-agent-phone" title="Call agent">
-                    <i className="fas fa-phone"></i>
-                  </a>
-                  <a href={`mailto:${settings?.agentEmail || settings?.contactEmail || ''}`} className="btn-agent-email" title="Email agent">
-                    <i className="fas fa-envelope"></i>
-                  </a>
-                </div>
-              </div>
-              <button className="btn-view-properties" onClick={onBack}>View All Properties</button>
-            </div>
-
-            {/* Action Buttons */}
             <div className="property-actions">
               <button className="action-btn" onClick={toggleFavorite}>
                 <span className="action-icon">
-                  <i className={isFavorite ? 'fas fa-heart' : 'far fa-heart'} style={isFavorite ? { color: '#e53e3e' } : {}}></i>
+                  <i className={`${isFavorite ? 'fas' : 'far'} fa-heart ${isFavorite ? 'favorite-icon-active' : ''}`}></i>
                 </span>
                 {isFavorite ? 'Saved to Favorites' : 'Add to Favorites'}
               </button>
@@ -634,7 +687,7 @@ function PropertySingle({ property, onBack, settings }) {
           </div>
         </div>
       </div>
-    </div>
+    </article>
   );
 }
 

@@ -31,6 +31,15 @@ function property_plugin_add_admin_menu() {
         'property-plugin-guide',
         'property_plugin_shortcode_guide_page'
     );
+    // Leads submenu - view captured leads
+    add_submenu_page(
+        'property-plugin-settings',
+        __('Leads', 'property-plugin'),
+        __('Leads', 'property-plugin'),
+        'manage_options',
+        'property-plugin-leads',
+        'property_plugin_leads_page'
+    );
 }
 add_action('admin_menu', 'property_plugin_add_admin_menu');
 
@@ -108,8 +117,33 @@ function property_plugin_register_settings() {
     register_setting('property_plugin_single', 'property_plugin_contact_form_subtitle', array('sanitize_callback' => 'sanitize_text_field'));
     register_setting('property_plugin_single', 'property_plugin_featured_label', array('sanitize_callback' => 'sanitize_text_field'));
     register_setting('property_plugin_single', 'property_plugin_schedule_tour_url', array('sanitize_callback' => 'esc_url_raw'));
+
+    // Social links
+    register_setting('property_plugin_social', 'property_plugin_social_facebook', array('sanitize_callback' => 'esc_url_raw'));
+    register_setting('property_plugin_social', 'property_plugin_social_twitter', array('sanitize_callback' => 'esc_url_raw'));
+    register_setting('property_plugin_social', 'property_plugin_social_linkedin', array('sanitize_callback' => 'esc_url_raw'));
+    register_setting('property_plugin_social', 'property_plugin_social_instagram', array('sanitize_callback' => 'esc_url_raw'));
 }
 add_action('admin_init', 'property_plugin_register_settings');
+
+/**
+ * AJAX handler to import default demo data on demand from admin UI
+ */
+function property_plugin_import_defaults_ajax() {
+    check_ajax_referer('property_plugin_import_defaults', 'nonce');
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error('forbidden', 403);
+    }
+
+    if (function_exists('property_plugin_install_default_data')) {
+        // Force import when called via admin AJAX
+        property_plugin_install_default_data(true);
+        wp_send_json_success(array('message' => 'imported'));
+    }
+
+    wp_send_json_error('no_func');
+}
+add_action('wp_ajax_property_plugin_import_defaults', 'property_plugin_import_defaults_ajax');
 
 /**
  * Settings page HTML
@@ -120,7 +154,10 @@ function property_plugin_settings_page() {
         <div class="property-plugin-header">
             <h1><?php _e('Property Plugin Settings', 'property-plugin'); ?></h1>
             <p class="description"><?php _e('Manage all plugin settings from one place. Changes will appear on the frontend after refreshing the page.', 'property-plugin'); ?></p>
-            <button type="button" class="button button-primary" id="save-all-settings"><?php _e('Save All Changes', 'property-plugin'); ?></button>
+                <button type="button" class="button button-primary" id="save-all-settings"><?php _e('Save All Changes', 'property-plugin'); ?></button>
+                <button type="button" class="button button-secondary" id="import-sample-data" style="margin-left:10px;">
+                    <?php _e('Import Sample Data', 'property-plugin'); ?>
+                </button>
         </div>
 
         <div class="property-plugin-settings-container">
@@ -237,6 +274,37 @@ function property_plugin_settings_page() {
                                         </label>
                                         <p class="description"><?php _e('Show loading animation while properties load', 'property-plugin'); ?></p>
                                     </fieldset>
+                                </td>
+                            </tr>
+                        </table>
+                        <h3 style="margin-top:20px;"><?php _e('Social Media Links', 'property-plugin'); ?></h3>
+                        <table class="form-table">
+                            <tr>
+                                <th scope="row"><label for="social_facebook"><?php _e('Facebook URL', 'property-plugin'); ?></label></th>
+                                <td>
+                                    <input type="url" id="social_facebook" name="property_plugin_social_facebook"
+                                           value="<?php echo esc_attr(get_option('property_plugin_social_facebook', '')); ?>" class="large-text" placeholder="https://facebook.com/yourpage" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="social_twitter"><?php _e('Twitter URL', 'property-plugin'); ?></label></th>
+                                <td>
+                                    <input type="url" id="social_twitter" name="property_plugin_social_twitter"
+                                           value="<?php echo esc_attr(get_option('property_plugin_social_twitter', '')); ?>" class="large-text" placeholder="https://twitter.com/yourhandle" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="social_linkedin"><?php _e('LinkedIn URL', 'property-plugin'); ?></label></th>
+                                <td>
+                                    <input type="url" id="social_linkedin" name="property_plugin_social_linkedin"
+                                           value="<?php echo esc_attr(get_option('property_plugin_social_linkedin', '')); ?>" class="large-text" placeholder="https://linkedin.com/company/yourcompany" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="social_instagram"><?php _e('Instagram URL', 'property-plugin'); ?></label></th>
+                                <td>
+                                    <input type="url" id="social_instagram" name="property_plugin_social_instagram"
+                                           value="<?php echo esc_attr(get_option('property_plugin_social_instagram', '')); ?>" class="large-text" placeholder="https://instagram.com/yourhandle" />
                                 </td>
                             </tr>
                         </table>
@@ -910,6 +978,30 @@ function property_plugin_settings_page() {
             <span class="save-status" id="save-status"></span>
         </div>
     </div>
+    <script>
+    jQuery(function($){
+        $('#import-sample-data').on('click', function(e){
+            e.preventDefault();
+            if (!confirm('<?php echo esc_js(__('This will import sample properties and settings. Continue?', 'property-plugin')); ?>')) return;
+            var btn = $(this).prop('disabled', true).text('<?php echo esc_js(__('Importing...', 'property-plugin')); ?>');
+            $.post(ajaxurl, {
+                action: 'property_plugin_import_defaults',
+                nonce: '<?php echo wp_create_nonce('property_plugin_import_defaults'); ?>'
+            }).done(function(resp){
+                if (resp && resp.success) {
+                    alert('<?php echo esc_js(__('Sample data imported successfully. Refresh the properties list or visit the homepage to view them.', 'property-plugin')); ?>');
+                    location.reload();
+                } else {
+                    alert('<?php echo esc_js(__('Import failed. Check the debug log for details.', 'property-plugin')); ?>');
+                    btn.prop('disabled', false).text('<?php echo esc_js(__('Import Sample Data', 'property-plugin')); ?>');
+                }
+            }).fail(function(){
+                alert('<?php echo esc_js(__('AJAX request failed. Check your connection and try again.', 'property-plugin')); ?>');
+                btn.prop('disabled', false).text('<?php echo esc_js(__('Import Sample Data', 'property-plugin')); ?>');
+            });
+        });
+    });
+    </script>
 
     <style>
         .property-plugin-settings {
@@ -1462,6 +1554,10 @@ function property_plugin_save_all_settings_ajax() {
         'property_plugin_contact_form_subtitle' => 'sanitize_text_field',
         'property_plugin_featured_label' => 'sanitize_text_field',
         'property_plugin_schedule_tour_url' => 'esc_url_raw',
+        'property_plugin_social_facebook' => 'esc_url_raw',
+        'property_plugin_social_twitter' => 'esc_url_raw',
+        'property_plugin_social_linkedin' => 'esc_url_raw',
+        'property_plugin_social_instagram' => 'esc_url_raw',
     );
     
     foreach ($settings as $key => $value) {
@@ -1573,6 +1669,50 @@ function property_plugin_delete_taxonomy_ajax() {
     wp_send_json_success('Taxonomy deleted successfully');
 }
 add_action('wp_ajax_property_plugin_delete_taxonomy', 'property_plugin_delete_taxonomy_ajax');
+
+/**
+ * Leads admin page callback — display captured leads
+ */
+function property_plugin_leads_page() {
+    global $wpdb;
+    $table = $wpdb->prefix . 'property_leads';
+    $leads = $wpdb->get_results("SELECT * FROM $table ORDER BY created_at DESC LIMIT 500");
+    ?>
+    <div class="wrap property-plugin-leads">
+        <h1><?php _e('Captured Leads', 'property-plugin'); ?></h1>
+        <p class="description"><?php _e('Leads captured from the property detail pages are listed below. You can export or delete leads manually using the database tools.', 'property-plugin'); ?></p>
+
+        <table class="wp-list-table widefat fixed striped">
+            <thead>
+                <tr>
+                    <th><?php _e('ID', 'property-plugin'); ?></th>
+                    <th><?php _e('Property', 'property-plugin'); ?></th>
+                    <th><?php _e('Name', 'property-plugin'); ?></th>
+                    <th><?php _e('Email', 'property-plugin'); ?></th>
+                    <th><?php _e('Phone', 'property-plugin'); ?></th>
+                    <th><?php _e('Message', 'property-plugin'); ?></th>
+                    <th><?php _e('Submitted', 'property-plugin'); ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (empty($leads)) : ?>
+                    <tr><td colspan="7"><?php _e('No leads captured yet.', 'property-plugin'); ?></td></tr>
+                <?php else: foreach ($leads as $lead): ?>
+                    <tr>
+                        <td><?php echo esc_html($lead->id); ?></td>
+                        <td><?php echo esc_html($lead->property_title . ' (#' . $lead->property_id . ')'); ?></td>
+                        <td><?php echo esc_html($lead->name); ?></td>
+                        <td><?php echo esc_html($lead->email); ?></td>
+                        <td><?php echo esc_html($lead->phone); ?></td>
+                        <td style="max-width:320px; white-space:normal; word-break:break-word"><?php echo esc_html($lead->message); ?></td>
+                        <td><?php echo esc_html($lead->created_at); ?></td>
+                    </tr>
+                <?php endforeach; endif; ?>
+            </tbody>
+        </table>
+    </div>
+    <?php
+}
 
 /**
  * Register a custom taxonomy

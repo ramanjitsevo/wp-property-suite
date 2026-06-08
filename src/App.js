@@ -10,10 +10,10 @@ function App({ containerId }) {
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [showLeadForm, setShowLeadForm] = useState(false);
   const [leadProperty, setLeadProperty] = useState(null);
-  
+
   // Get settings from WordPress
   const settings = window.propertyPluginData?.settings || {};
-  
+
   // Filter states
   const [filters, setFilters] = useState({
     status: 'all',
@@ -26,11 +26,11 @@ function App({ containerId }) {
     bathrooms: 'any',
     sortBy: 'latest'
   });
-  
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = parseInt(settings.propertiesPerPage) || 12;
-  
+
   // Check if user has already submitted the lead form
   const hasSubmittedLeadForm = localStorage.getItem('propertyLeadFormSubmitted') === 'true';
 
@@ -45,7 +45,7 @@ function App({ containerId }) {
     try {
       setLoading(true);
       const apiUrl = window.propertyPluginData?.apiUrl || '/wp-json/property-plugin/v1';
-      
+
       const response = await fetch(`${apiUrl}/properties`, {
         headers: {
           'X-WP-Nonce': window.propertyPluginData?.nonce || '',
@@ -59,11 +59,11 @@ function App({ containerId }) {
       const data = await response.json();
       console.log('Properties fetched:', data);
       console.log('First property structure:', data[0]);
-      
+
       // Log all property types to debug
       const types = data.map(p => ({ id: p.id, title: p.title, type: p.type, property_type: p.property_type, categories: p.categories }));
       console.log('Property types found:', types);
-      
+
       setProperties(data);
       setError(null);
     } catch (err) {
@@ -104,10 +104,10 @@ function App({ containerId }) {
   const handleLeadFormSubmit = (formData) => {
     console.log('[App] Lead form submitted successfully for:', formData.email);
     console.log('[App] Property:', leadProperty?.title);
-    
+
     // Save to localStorage that user has submitted the form
     localStorage.setItem('propertyLeadFormSubmitted', 'true');
-    
+
     // Close the modal and open the property page
     setShowLeadForm(false);
     setSelectedProperty(leadProperty);
@@ -125,7 +125,7 @@ function App({ containerId }) {
     properties.forEach(property => {
       // Check property_type field from WordPress API (primary field)
       let propertyType = property.property_type || property.type || '';
-      
+
       if (propertyType && propertyType !== 'Property') {
         // Capitalize first letter of each word
         const formattedType = propertyType
@@ -136,7 +136,7 @@ function App({ containerId }) {
           .filter(word => word.length > 0)
           .map(word => word.charAt(0).toUpperCase() + word.slice(1))
           .join(', ');
-        
+
         if (formattedType) {
           types.add(formattedType);
         }
@@ -205,7 +205,7 @@ function App({ containerId }) {
     // Filter by keyword
     if (filters.keyword) {
       const keyword = filters.keyword.toLowerCase();
-      filtered = filtered.filter(p => 
+      filtered = filtered.filter(p =>
         p.title?.toLowerCase().includes(keyword) ||
         p.description?.toLowerCase().includes(keyword)
       );
@@ -214,7 +214,7 @@ function App({ containerId }) {
     // Filter by location
     if (filters.location) {
       const location = filters.location.toLowerCase();
-      filtered = filtered.filter(p => 
+      filtered = filtered.filter(p =>
         p.address?.toLowerCase().includes(location) ||
         p.location?.toLowerCase().includes(location)
       );
@@ -226,16 +226,16 @@ function App({ containerId }) {
         // Check property_type field from WordPress API
         const propertyType = (p.property_type || p.type || '').toLowerCase().trim();
         const filterType = filters.propertyType.toLowerCase().trim();
-        
+
         // Remove trailing 's' for plural matching
         const singularPropertyType = propertyType.replace(/s$/, '');
         const singularFilterType = filterType.replace(/s$/, '');
-        
+
         // Exact match, contains match, or singular/plural match
-        return propertyType === filterType || 
-               singularPropertyType === singularFilterType ||
-               propertyType.includes(filterType) ||
-               filterType.includes(propertyType);
+        return propertyType === filterType ||
+          singularPropertyType === singularFilterType ||
+          propertyType.includes(filterType) ||
+          filterType.includes(propertyType);
       });
     }
 
@@ -281,18 +281,18 @@ function App({ containerId }) {
   };
 
   const filteredProperties = getFilteredProperties();
-  
+
   // Pagination logic
   const totalPages = Math.ceil(filteredProperties.length / postsPerPage);
   const indexOfLastPost = currentPage * postsPerPage;
   const indexOfFirstPost = indexOfLastPost - postsPerPage;
   const currentPosts = filteredProperties.slice(indexOfFirstPost, indexOfLastPost);
-  
+
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [filters]);
-  
+
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -317,7 +317,7 @@ function App({ containerId }) {
       {settings.customCSS && (
         <style dangerouslySetInnerHTML={{ __html: settings.customCSS }} />
       )}
-      
+
       {/* Apply global styles from settings */}
       <style>{`
         .property-plugin-app {
@@ -330,15 +330,15 @@ function App({ containerId }) {
 
       {/* Lead Form Modal */}
       {showLeadForm && leadProperty && (
-        <LeadFormModal 
-          property={leadProperty} 
+        <LeadFormModal
+          property={leadProperty}
           onClose={handleLeadFormClose}
           onSubmit={handleLeadFormSubmit}
         />
       )}
 
       {/* Hero Section */}
-      <section 
+      <section
         className="hero-section"
         style={{
           backgroundImage: settings.bannerImage ? `url(${settings.bannerImage})` : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -348,7 +348,7 @@ function App({ containerId }) {
           position: 'relative'
         }}
       >
-        <div 
+        <div
           className="hero-overlay"
           style={{
             backgroundColor: settings.bannerOverlayColor || '#000000',
@@ -365,25 +365,25 @@ function App({ containerId }) {
       <section className="search-section">
         <div className="search-container">
           <div className="search-tabs">
-            <button 
+            <button
               className={`search-tab ${filters.status === 'all' ? 'active' : ''}`}
               onClick={() => handleStatusFilter('all')}
             >
               All Status
             </button>
-            <button 
+            <button
               className={`search-tab ${filters.status === 'for-sale' ? 'active' : ''}`}
               onClick={() => handleStatusFilter('for-sale')}
             >
               For Sale
             </button>
-            <button 
+            <button
               className={`search-tab ${filters.status === 'for-rent' ? 'active' : ''}`}
               onClick={() => handleStatusFilter('for-rent')}
             >
               For Rent
             </button>
-            <button 
+            <button
               className={`search-tab ${filters.status === 'new-launch' ? 'active' : ''}`}
               onClick={() => handleStatusFilter('new-launch')}
             >
@@ -393,25 +393,25 @@ function App({ containerId }) {
           <div className="search-form">
             <div className="search-field">
               <label>Keyword</label>
-              <input 
-                type="text" 
-                placeholder="Enter keyword..." 
+              <input
+                type="text"
+                placeholder="Enter keyword..."
                 value={filters.keyword}
                 onChange={(e) => handleFilterChange('keyword', e.target.value)}
               />
             </div>
             <div className="search-field">
               <label>Location</label>
-              <input 
-                type="text" 
-                placeholder="Enter location..." 
+              <input
+                type="text"
+                placeholder="Enter location..."
                 value={filters.location}
                 onChange={(e) => handleFilterChange('location', e.target.value)}
               />
             </div>
             <div className="search-field">
               <label>Property Type</label>
-              <select 
+              <select
                 value={filters.propertyType}
                 onChange={(e) => handleFilterChange('propertyType', e.target.value)}
               >
@@ -425,18 +425,18 @@ function App({ containerId }) {
             </div>
             <div className="search-field">
               <label>Min Price</label>
-              <input 
-                type="number" 
-                placeholder="Min Price" 
+              <input
+                type="number"
+                placeholder="Min Price"
                 value={filters.minPrice}
                 onChange={(e) => handleFilterChange('minPrice', e.target.value)}
               />
             </div>
             <div className="search-field">
               <label>Max Price</label>
-              <input 
-                type="number" 
-                placeholder="Max Price" 
+              <input
+                type="number"
+                placeholder="Max Price"
                 value={filters.maxPrice}
                 onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
               />
@@ -455,133 +455,133 @@ function App({ containerId }) {
           <div className="properties-layout">
             {/* Sidebar Filters */}
             {settings.enableFilters !== '0' && (
-              <aside 
+              <aside
                 className="properties-sidebar"
                 style={{
                   order: settings.sidebarPosition === 'right' ? '2' : '1',
                   width: `${settings.sidebarWidth || 280}px`
                 }}
               >
-              <div className="filter-header">
-                <h3>Filter Properties</h3>
-                <button className="btn-reset" onClick={handleResetFilters}>Reset</button>
-              </div>
+                <div className="filter-header">
+                  <h3>Filter Properties</h3>
+                  <button className="btn-reset" onClick={handleResetFilters}>Reset</button>
+                </div>
 
-              <div className="filter-group">
-                <h4>Location</h4>
-                <input 
-                  type="text" 
-                  placeholder="Enter location..." 
-                  value={filters.location}
-                  onChange={(e) => handleFilterChange('location', e.target.value)}
-                />
-              </div>
+                <div className="filter-group">
+                  <h4>Location</h4>
+                  <input
+                    type="text"
+                    placeholder="Enter location..."
+                    value={filters.location}
+                    onChange={(e) => handleFilterChange('location', e.target.value)}
+                  />
+                </div>
 
-              <div className="filter-group">
-                <h4>Property Type</h4>
-                <div className="filter-options">
-                  <label>
-                    <input 
-                      type="radio" 
-                      name="propertyType"
-                      checked={filters.propertyType === 'all'}
-                      onChange={() => handleFilterChange('propertyType', 'all')}
-                    /> All Types
-                  </label>
-                  {uniquePropertyTypes.map(type => (
-                    <label key={type}>
-                      <input 
-                        type="radio" 
+                <div className="filter-group">
+                  <h4>Property Type</h4>
+                  <div className="filter-options">
+                    <label>
+                      <input
+                        type="radio"
                         name="propertyType"
-                        checked={filters.propertyType === type.toLowerCase()}
-                        onChange={() => handleFilterChange('propertyType', type.toLowerCase())}
-                      /> {type}
+                        checked={filters.propertyType === 'all'}
+                        onChange={() => handleFilterChange('propertyType', 'all')}
+                      /> All Types
                     </label>
-                  ))}
+                    {uniquePropertyTypes.map(type => (
+                      <label key={type}>
+                        <input
+                          type="radio"
+                          name="propertyType"
+                          checked={filters.propertyType === type.toLowerCase()}
+                          onChange={() => handleFilterChange('propertyType', type.toLowerCase())}
+                        /> {type}
+                      </label>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              <div className="filter-group">
-                <h4>Price Range</h4>
-                <div className="price-range-inputs">
-                  <input 
-                    type="number" 
-                    placeholder="Min Price" 
-                    value={filters.minPrice}
-                    onChange={(e) => handleFilterChange('minPrice', e.target.value)}
-                    style={{ width: '48%', padding: '8px', marginBottom: '10px' }}
-                  />
-                  <input 
-                    type="number" 
-                    placeholder="Max Price" 
-                    value={filters.maxPrice}
-                    onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
-                    style={{ width: '48%', padding: '8px', marginBottom: '10px' }}
-                  />
+                <div className="filter-group">
+                  <h4>Price Range</h4>
+                  <div className="price-range-inputs">
+                    <input
+                      type="number"
+                      placeholder="Min Price"
+                      value={filters.minPrice}
+                      onChange={(e) => handleFilterChange('minPrice', e.target.value)}
+                      style={{ width: '48%', padding: '8px', marginBottom: '10px' }}
+                    />
+                    <input
+                      type="number"
+                      placeholder="Max Price"
+                      value={filters.maxPrice}
+                      onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
+                      style={{ width: '48%', padding: '8px', marginBottom: '10px' }}
+                    />
+                  </div>
+                  <div className="price-range">
+                    <span>$10,000</span>
+                    <input
+                      type="range"
+                      className="price-slider"
+                      min="10000"
+                      max="5000000"
+                      step="10000"
+                      value={filters.maxPrice || 2500000}
+                      onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
+                    />
+                    <span>$5,000,000</span>
+                  </div>
                 </div>
-                <div className="price-range">
-                  <span>$10,000</span>
-                  <input 
-                    type="range" 
-                    className="price-slider" 
-                    min="10000" 
-                    max="5000000" 
-                    step="10000" 
-                    value={filters.maxPrice || 2500000}
-                    onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
-                  />
-                  <span>$5,000,000</span>
-                </div>
-              </div>
 
-              <div className="filter-group">
-                <h4>Bedrooms</h4>
-                <div className="number-options">
-                  <button 
-                    className={`number-btn ${filters.bedrooms === 'any' ? 'active' : ''}`}
-                    onClick={() => handleFilterChange('bedrooms', 'any')}
-                  >
-                    Any
-                  </button>
-                  {[1, 2, 3, 4, '5+'].map(num => (
-                    <button 
-                      key={num} 
-                      className={`number-btn ${filters.bedrooms === num.toString() ? 'active' : ''}`}
-                      onClick={() => handleFilterChange('bedrooms', num.toString())}
+                <div className="filter-group">
+                  <h4>Bedrooms</h4>
+                  <div className="number-options">
+                    <button
+                      className={`number-btn ${filters.bedrooms === 'any' ? 'active' : ''}`}
+                      onClick={() => handleFilterChange('bedrooms', 'any')}
                     >
-                      {num}
+                      Any
                     </button>
-                  ))}
+                    {[1, 2, 3, 4, '5+'].map(num => (
+                      <button
+                        key={num}
+                        className={`number-btn ${filters.bedrooms === num.toString() ? 'active' : ''}`}
+                        onClick={() => handleFilterChange('bedrooms', num.toString())}
+                      >
+                        {num}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              <div className="filter-group">
-                <h4>Bathrooms</h4>
-                <div className="number-options">
-                  <button 
-                    className={`number-btn ${filters.bathrooms === 'any' ? 'active' : ''}`}
-                    onClick={() => handleFilterChange('bathrooms', 'any')}
-                  >
-                    Any
-                  </button>
-                  {[1, 2, 3, 4, '5+'].map(num => (
-                    <button 
-                      key={num} 
-                      className={`number-btn ${filters.bathrooms === num.toString() ? 'active' : ''}`}
-                      onClick={() => handleFilterChange('bathrooms', num.toString())}
+                <div className="filter-group">
+                  <h4>Bathrooms</h4>
+                  <div className="number-options">
+                    <button
+                      className={`number-btn ${filters.bathrooms === 'any' ? 'active' : ''}`}
+                      onClick={() => handleFilterChange('bathrooms', 'any')}
                     >
-                      {num}
+                      Any
                     </button>
-                  ))}
+                    {[1, 2, 3, 4, '5+'].map(num => (
+                      <button
+                        key={num}
+                        className={`number-btn ${filters.bathrooms === num.toString() ? 'active' : ''}`}
+                        onClick={() => handleFilterChange('bathrooms', num.toString())}
+                      >
+                        {num}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              <button className="btn-apply-filters" onClick={handleApplyFilters}>Apply Filters</button>
-            </aside>
+                <button className="btn-apply-filters" onClick={handleApplyFilters}>Apply Filters</button>
+              </aside>
             )}
 
             {/* Main Content */}
-            <div 
+            <div
               className="properties-main"
               style={{
                 order: settings.sidebarPosition === 'right' ? '1' : '2',
@@ -598,18 +598,14 @@ function App({ containerId }) {
                 </div>
                 <div className="sort-options">
                   <label>Sort By:</label>
-                  <select 
+                  <select
                     value={filters.sortBy}
                     onChange={(e) => handleFilterChange('sortBy', e.target.value)}
                   >
                     <option value="latest">Latest</option>
                     <option value="price-low">Price: Low to High</option>
                     <option value="price-high">Price: High to Low</option>
-                  </select>
-                  {/* <div className="view-toggle">
-                    <button className="view-btn active"></button>
-                    <button className="view-btn">⊞</button>
-                  </div> */}
+                  </select>                 
                 </div>
               </div>
 
@@ -626,8 +622,8 @@ function App({ containerId }) {
                   currentPosts.map((property) => {
                     const statusInfo = getStatusBadge(property.status);
                     return (
-                      <div 
-                        key={property.id} 
+                      <div
+                        key={property.id}
                         className="property-card"
                         style={{
                           cursor: 'pointer',
@@ -637,8 +633,8 @@ function App({ containerId }) {
                       >
                         <div className="property-image-container">
                           {property.thumbnail ? (
-                            <img 
-                              src={property.thumbnail} 
+                            <img
+                              src={property.thumbnail}
                               alt={property.title}
                               className="property-image"
                             />
@@ -648,29 +644,25 @@ function App({ containerId }) {
                             </div>
                           )}
                           {settings.showBadge !== '0' && (
-                            <div 
+                            <div
                               className="property-badge"
                               style={{ backgroundColor: statusInfo.color }}
                             >
                               {statusInfo.label}
                             </div>
                           )}
-                          {/* <button 
-                            className="btn-favorite"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            ♡
-                          </button> */}
                         </div>
                         <div className="property-details">
                           <h3 className="property-name">{property.title}</h3>
                           {settings.showAddress !== '0' && (
-                            <p className="property-address">📍 {property.city || property.address}</p>
+                            <p className="property-address">
+                              <i className="fas fa-map-marker-alt"></i> {property.city || property.address}
+                            </p>
                           )}
                           <p className="property-price" style={{ color: settings.primaryColor || '#2563eb' }}>{property.price}</p>
                           <div className="property-features">
                             {property.bedrooms && property.bedrooms !== 'N/A' && (
-                              <span> {property.bedrooms} Beds</span>
+                              <span><i className="fas fa-bed"></i> {property.bedrooms} Beds</span>
                             )}
                             {property.bathrooms && property.bathrooms !== 'N/A' && (
                               <span><i className="fas fa-bath"></i> {property.bathrooms} Baths</span>
@@ -688,11 +680,11 @@ function App({ containerId }) {
                   })
                 )}
               </div>
-                  {/* Pagination */}
+              {/* Pagination */}
               {totalPages > 1 && (
                 <div className="pagination">
-                  <button 
-                    className="page-btn" 
+                  <button
+                    className="page-btn"
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
                     style={{ opacity: currentPage === 1 ? 0.5 : 1, cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
@@ -700,7 +692,7 @@ function App({ containerId }) {
                     ‹
                   </button>
                   {Array.from({ length: totalPages }, (_, index) => index + 1).map(pageNum => (
-                    <button 
+                    <button
                       key={pageNum}
                       className={`page-btn ${currentPage === pageNum ? 'active' : ''}`}
                       onClick={() => handlePageChange(pageNum)}
@@ -708,8 +700,8 @@ function App({ containerId }) {
                       {pageNum}
                     </button>
                   ))}
-                  <button 
-                    className="page-btn" 
+                  <button
+                    className="page-btn"
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
                     style={{ opacity: currentPage === totalPages ? 0.5 : 1, cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
@@ -752,10 +744,10 @@ function App({ containerId }) {
       >
         <div className="features-container" style={{ color: settings.featuresTextColor || '#1f2937' }}>
           {(settings.features || [
-            { icon: 'fas fa-trophy',    title: 'Trusted by Thousands',      description: 'Join thousands of happy clients who found their perfect property.' },
-            { icon: 'fas fa-chart-bar',  title: 'Wide Range of Properties',  description: 'Explore a wide range of properties for sale and rent.' },
-            { icon: 'fas fa-users',      title: 'Expert Agents',             description: 'Work with experienced agents to find the best property.' },
-            { icon: 'fas fa-shield-alt', title: 'Secure & Easy Process',     description: 'Enjoy a secure and hassle-free property buying or renting process.' },
+            { icon: 'fas fa-trophy', title: 'Trusted by Thousands', description: 'Join thousands of happy clients who found their perfect property.' },
+            { icon: 'fas fa-chart-bar', title: 'Wide Range of Properties', description: 'Explore a wide range of properties for sale and rent.' },
+            { icon: 'fas fa-users', title: 'Expert Agents', description: 'Work with experienced agents to find the best property.' },
+            { icon: 'fas fa-shield-alt', title: 'Secure & Easy Process', description: 'Enjoy a secure and hassle-free property buying or renting process.' },
           ]).map((feature, idx) => (
             <div className="feature-item" key={idx}>
               <div className="feature-icon"><i className={feature.icon}></i></div>

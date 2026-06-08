@@ -256,10 +256,34 @@ function property_plugin_meta_box_callback($post) {
     $garage = get_post_meta($post->ID, '_property_garage', true);
     $gallery_ids = get_post_meta($post->ID, '_property_gallery', true);
     $gallery_ids_array = !empty($gallery_ids) ? array_filter(explode(',', $gallery_ids)) : array();
+    // Per-property agent fields
+    $agent_name = get_post_meta($post->ID, '_property_agent_name', true);
+    $agent_phone = get_post_meta($post->ID, '_property_agent_phone', true);
+    $agent_email = get_post_meta($post->ID, '_property_agent_email', true);
+    $agent_photo = get_post_meta($post->ID, '_property_agent_photo', true);
+    // Additional details (repeatable)
+    $additional_details_raw = get_post_meta($post->ID, '_property_additional_details', true);
+    $additional_details = !empty($additional_details_raw) ? json_decode($additional_details_raw, true) : array();
+    // FAQs (repeatable)
+    $property_faqs_raw = get_post_meta($post->ID, '_property_faqs', true);
+    $property_faqs = !empty($property_faqs_raw) ? json_decode($property_faqs_raw, true) : array();
     
     $google_api_key = get_option('property_plugin_google_api_key', '');
     
     ?>
+    <div class="pp-tabs" style="display:flex; gap:16px; align-items:flex-start;">
+        <div class="pp-tab-list" style="width:220px; background:#fff; border:1px solid #ccd0d4; border-radius:4px; padding:8px;">
+            <button type="button" class="pp-tab-button active" data-tab="basic" style="width:100%; padding:10px; text-align:left; border:none; background:transparent; cursor:pointer;"><?php _e('Basic', 'property-plugin'); ?></button>
+            <button type="button" class="pp-tab-button" data-tab="location" style="width:100%; padding:10px; text-align:left; border:none; background:transparent; cursor:pointer;"><?php _e('Location', 'property-plugin'); ?></button>
+            <button type="button" class="pp-tab-button" data-tab="features" style="width:100%; padding:10px; text-align:left; border:none; background:transparent; cursor:pointer;"><?php _e('Features', 'property-plugin'); ?></button>
+            <button type="button" class="pp-tab-button" data-tab="gallery" style="width:100%; padding:10px; text-align:left; border:none; background:transparent; cursor:pointer;"><?php _e('Gallery', 'property-plugin'); ?></button>
+            <button type="button" class="pp-tab-button" data-tab="agent" style="width:100%; padding:10px; text-align:left; border:none; background:transparent; cursor:pointer;"><?php _e('Agent', 'property-plugin'); ?></button>
+            <button type="button" class="pp-tab-button" data-tab="faq" style="width:100%; padding:10px; text-align:left; border:none; background:transparent; cursor:pointer;"><?php _e('FAQs', 'property-plugin'); ?></button>
+            <button type="button" class="pp-tab-button" data-tab="additional" style="width:100%; padding:10px; text-align:left; border:none; background:transparent; cursor:pointer;"><?php _e('Additional Details', 'property-plugin'); ?></button>
+        </div>
+
+        <div class="pp-tab-content" style="flex:1; background:#fff; border:1px solid #ccd0d4; border-radius:4px; padding:16px;">
+            <div class="pp-tab-panel" id="pp-panel-basic">
     <p>
         <label for="property_price"><?php _e('Price:', 'property-plugin'); ?></label><br>
         <input type="text" id="property_price" name="property_price" value="<?php echo esc_attr($price); ?>" style="width: 100%;" placeholder="e.g., 500000">
@@ -268,9 +292,8 @@ function property_plugin_meta_box_callback($post) {
         <label for="property_area"><?php _e('Area (sq ft):', 'property-plugin'); ?></label><br>
         <input type="number" id="property_area" name="property_area" value="<?php echo esc_attr($area); ?>" style="width: 100%;" placeholder="e.g., 1500">
     </p>
-    
-    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ccc;">
-    
+            </div>
+    <div class="pp-tab-panel" id="pp-panel-location" style="display:none;">
     <h3><?php _e('Location Details', 'property-plugin'); ?></h3>
     
     <p>
@@ -340,7 +363,9 @@ function property_plugin_meta_box_callback($post) {
             <td><input type="text" id="property_country" name="property_country" value="<?php echo esc_attr($country); ?>" style="width: 100%;" placeholder="Country"></td>
         </tr>
     </table>
+    </div>
     
+    <div class="pp-tab-panel" id="pp-panel-features" style="display:none;">
     <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ccc;">
     
     <p>
@@ -353,16 +378,13 @@ function property_plugin_meta_box_callback($post) {
         </select>
     </p>
 
-    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ccc;">
-
-    <h3><?php _e('Property Features', 'property-plugin'); ?></h3>
     <p>
         <label for="property_garage"><?php _e('Garage (number of parking spaces):', 'property-plugin'); ?></label><br>
         <input type="number" id="property_garage" name="property_garage" value="<?php echo esc_attr($garage); ?>" style="width: 100%;" placeholder="e.g., 2" min="0">
     </p>
+    </div>
 
-    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ccc;">
-
+    <div class="pp-tab-panel" id="pp-panel-gallery" style="display:none;">
     <h3><?php _e('Property Gallery', 'property-plugin'); ?></h3>
     <p class="description" style="margin-bottom: 12px;">
         <?php _e('Select multiple images from the media library to display below the featured image on the single property page.', 'property-plugin'); ?>
@@ -389,12 +411,99 @@ function property_plugin_meta_box_callback($post) {
         <span class="dashicons dashicons-format-gallery" style="margin-right: 5px;"></span>
         <?php _e('Select Gallery Images', 'property-plugin'); ?>
     </button>
+    </div>
+
+    <div class="pp-tab-panel" id="pp-panel-agent" style="display:none;">
+    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ccc;">
+
+    <h3><?php _e('Per-Property Agent (optional)', 'property-plugin'); ?></h3>
+    <p class="description"><?php _e('Set an agent specifically for this property. These values override the global settings on the frontend when present.', 'property-plugin'); ?></p>
+
+    <table class="form-table">
+        <tr>
+            <th><label for="property_agent_name"><?php _e('Agent Name:', 'property-plugin'); ?></label></th>
+            <td><input type="text" id="property_agent_name" name="property_agent_name" value="<?php echo esc_attr($agent_name); ?>" style="width:100%;" placeholder="Agent Name"></td>
+        </tr>
+        <tr>
+            <th><label for="property_agent_phone"><?php _e('Agent Phone:', 'property-plugin'); ?></label></th>
+            <td><input type="text" id="property_agent_phone" name="property_agent_phone" value="<?php echo esc_attr($agent_phone); ?>" style="width:100%;" placeholder="+1 (555) 123-4567"></td>
+        </tr>
+        <tr>
+            <th><label for="property_agent_email"><?php _e('Agent Email:', 'property-plugin'); ?></label></th>
+            <td><input type="email" id="property_agent_email" name="property_agent_email" value="<?php echo esc_attr($agent_email); ?>" style="width:100%;" placeholder="agent@example.com"></td>
+        </tr>
+        <tr>
+            <th><label for="property_agent_photo"><?php _e('Agent Photo:', 'property-plugin'); ?></label></th>
+            <td>
+                <div class="image-upload-container" style="text-align:left;">
+                    <img id="property_agent_photo_preview"
+                         src="<?php echo esc_url($agent_photo); ?>"
+                         style="<?php echo $agent_photo ? '' : 'display:none;'; ?>width:80px; height:80px; border-radius:50%; object-fit:cover; margin-bottom:10px;" />
+                    <br/>
+                    <input type="hidden" id="property_agent_photo" name="property_agent_photo" value="<?php echo esc_attr($agent_photo); ?>" />
+                    <button type="button" class="button pp-upload-img" data-target="property_agent_photo"><?php _e('Upload Photo', 'property-plugin'); ?></button>
+                    <button type="button" class="button pp-remove-img" data-target="property_agent_photo" <?php echo $agent_photo ? '' : 'style="display:none;"'; ?>><?php _e('Remove', 'property-plugin'); ?></button>
+                </div>
+            </td>
+        </tr>
+    </table>
+    </div>
+
+    <div class="pp-tab-panel" id="pp-panel-faq" style="display:none;">
+    <h3><?php _e('Property FAQs', 'property-plugin'); ?></h3>
+    <p class="description"><?php _e('Add frequently asked questions for this property. These will appear in the FAQ tab on the frontend.', 'property-plugin'); ?></p>
+
+    <div id="property-faqs-container" style="margin-bottom:12px;">
+        <?php if (!empty($property_faqs) && is_array($property_faqs)): foreach ($property_faqs as $idx => $item): ?>
+            <div class="property-faq-row" data-index="<?php echo esc_attr($idx); ?>" style="display:grid; grid-template-columns:1fr; gap:8px; margin-bottom:12px; padding:12px; border:1px solid #dcdcde; border-radius:4px; background:#f6f7f7;">
+                <input type="text" name="faq_question[]" value="<?php echo esc_attr($item['question'] ?? ''); ?>" placeholder="Question" style="width:100%;" />
+                <textarea name="faq_answer[]" placeholder="Answer" rows="3" style="width:100%;"><?php echo esc_textarea($item['answer'] ?? ''); ?></textarea>
+                <button type="button" class="button remove-property-faq" style="justify-self:start;">Remove FAQ</button>
+            </div>
+        <?php endforeach; endif; ?>
+    </div>
+    <button type="button" id="add-property-faq" class="button">Add FAQ</button>
+    </div>
+
+    <div class="pp-tab-panel" id="pp-panel-additional" style="display:none;">
+    <h3><?php _e('Additional Details (repeatable)', 'property-plugin'); ?></h3>
+    <p class="description"><?php _e('Add any extra labeled details (e.g., Year Built, Parking) that will show in the Additional Detail tab on the frontend.', 'property-plugin'); ?></p>
+
+    <div id="additional-details-container" style="margin-bottom:12px;">
+        <?php if (!empty($additional_details) && is_array($additional_details)): foreach ($additional_details as $idx => $item): ?>
+            <div class="additional-detail-row" data-index="<?php echo esc_attr($idx); ?>" style="display:flex; gap:8px; margin-bottom:8px;">
+                <input type="text" name="additional_label[]" value="<?php echo esc_attr($item['label'] ?? ''); ?>" placeholder="Label (e.g., Year Built)" style="flex:1;" />
+                <input type="text" name="additional_value[]" value="<?php echo esc_attr($item['value'] ?? ''); ?>" placeholder="Value" style="width:220px;" />
+                <button type="button" class="button remove-additional">Remove</button>
+            </div>
+        <?php endforeach; endif; ?>
+    </div>
+    <button type="button" id="add-additional-detail" class="button">Add Detail</button>
+    </div>
+        </div>
+    </div>
+
+    <style>
+    .pp-tab-list .pp-tab-button.active { background:#f0f6fc; color:#2271b1; font-weight:600; border-left:3px solid #2271b1; }
+    .pp-tab-list .pp-tab-button { border-left:3px solid transparent; }
+    </style>
 
     <script>
     jQuery(document).ready(function($) {
+            // Tab switching
+            $('.pp-tab-button').on('click', function() {
+                var tab = $(this).data('tab');
+                $('.pp-tab-button').removeClass('active');
+                $(this).addClass('active');
+                $('.pp-tab-panel').hide();
+                $('#pp-panel-' + tab).show();
+            });
+
+            // Ensure initial gallery preview is rendered if needed
+            renderGalleryPreview();
         var ppMediaFrame;
 
-        function renderGalleryPreview() {
+        window.renderGalleryPreview = function() {
             var ids = $('#property_gallery_ids').val().split(',').filter(Boolean);
             var $preview = $('#property-gallery-preview').empty();
 
@@ -458,6 +567,40 @@ function property_plugin_meta_box_callback($post) {
             $('#property_gallery_ids').val(ids.join(','));
             $(this).closest('.pp-gallery-thumb').remove();
         });
+
+            // Additional details repeatable
+            $('#add-additional-detail').on('click', function(e) {
+                e.preventDefault();
+                var idx = $('#additional-details-container .additional-detail-row').length;
+                var $row = $('<div class="additional-detail-row" data-index="' + idx + '" style="display:flex; gap:8px; margin-bottom:8px;">'
+                    + '<input type="text" name="additional_label[]" placeholder="Label (e.g., Year Built)" style="flex:1;" />'
+                    + '<input type="text" name="additional_value[]" placeholder="Value" style="width:220px;" />'
+                    + '<button type="button" class="button remove-additional">Remove</button>'
+                    + '</div>');
+                $('#additional-details-container').append($row);
+            });
+
+            $(document).on('click', '.remove-additional', function(e) {
+                e.preventDefault();
+                $(this).closest('.additional-detail-row').remove();
+            });
+
+            // Property FAQs repeatable
+            $('#add-property-faq').on('click', function(e) {
+                e.preventDefault();
+                var idx = $('#property-faqs-container .property-faq-row').length;
+                var $row = $('<div class="property-faq-row" data-index="' + idx + '" style="display:grid; grid-template-columns:1fr; gap:8px; margin-bottom:12px; padding:12px; border:1px solid #dcdcde; border-radius:4px; background:#f6f7f7;">'
+                    + '<input type="text" name="faq_question[]" placeholder="Question" style="width:100%;" />'
+                    + '<textarea name="faq_answer[]" placeholder="Answer" rows="3" style="width:100%;"></textarea>'
+                    + '<button type="button" class="button remove-property-faq" style="justify-self:start;">Remove FAQ</button>'
+                    + '</div>');
+                $('#property-faqs-container').append($row);
+            });
+
+            $(document).on('click', '.remove-property-faq', function(e) {
+                e.preventDefault();
+                $(this).closest('.property-faq-row').remove();
+            });
     });
     </script>
     <?php
@@ -523,6 +666,60 @@ function property_plugin_save_meta_boxes($post_id) {
         $raw_ids = sanitize_text_field($_POST['property_gallery_ids']);
         $clean_ids = array_filter(array_map('absint', explode(',', $raw_ids)));
         update_post_meta($post_id, '_property_gallery', implode(',', $clean_ids));
+    }
+
+    // Per-property agent fields
+    if (isset($_POST['property_agent_name'])) {
+        update_post_meta($post_id, '_property_agent_name', sanitize_text_field($_POST['property_agent_name']));
+    }
+    if (isset($_POST['property_agent_phone'])) {
+        update_post_meta($post_id, '_property_agent_phone', sanitize_text_field($_POST['property_agent_phone']));
+    }
+    if (isset($_POST['property_agent_email'])) {
+        update_post_meta($post_id, '_property_agent_email', sanitize_email($_POST['property_agent_email']));
+    }
+    if (isset($_POST['property_agent_photo'])) {
+        update_post_meta($post_id, '_property_agent_photo', esc_url_raw($_POST['property_agent_photo']));
+    }
+
+    // Property FAQs (repeatable)
+    if (isset($_POST['faq_question']) && is_array($_POST['faq_question'])) {
+        $questions = array_map('sanitize_text_field', $_POST['faq_question']);
+        $answers = isset($_POST['faq_answer']) && is_array($_POST['faq_answer']) ? array_map('sanitize_textarea_field', $_POST['faq_answer']) : array();
+        $combined = array();
+        for ($i = 0; $i < count($questions); $i++) {
+            $question = trim($questions[$i]);
+            $answer = isset($answers[$i]) ? trim($answers[$i]) : '';
+            if ($question !== '' || $answer !== '') {
+                $combined[] = array('question' => $question, 'answer' => $answer);
+            }
+        }
+        if (!empty($combined)) {
+            update_post_meta($post_id, '_property_faqs', wp_json_encode($combined));
+        } else {
+            delete_post_meta($post_id, '_property_faqs');
+        }
+    } else {
+        delete_post_meta($post_id, '_property_faqs');
+    }
+
+    // Additional details (repeatable)
+    if (isset($_POST['additional_label']) && is_array($_POST['additional_label'])) {
+        $labels = array_map('sanitize_text_field', $_POST['additional_label']);
+        $values = isset($_POST['additional_value']) && is_array($_POST['additional_value']) ? array_map('sanitize_text_field', $_POST['additional_value']) : array();
+        $combined = array();
+        for ($i = 0; $i < count($labels); $i++) {
+            $label = trim($labels[$i]);
+            $value = isset($values[$i]) ? trim($values[$i]) : '';
+            if ($label !== '' || $value !== '') {
+                $combined[] = array('label' => $label, 'value' => $value);
+            }
+        }
+        if (!empty($combined)) {
+            update_post_meta($post_id, '_property_additional_details', wp_json_encode($combined));
+        } else {
+            delete_post_meta($post_id, '_property_additional_details');
+        }
     }
 }
 
@@ -785,6 +982,17 @@ function property_plugin_get_properties($request) {
             'floor' => !empty($floors) ? $floors[0] : 'N/A',
             'garage' => $garage ?: '',
             'gallery' => $gallery,
+            // Per-property agent meta (optional)
+            'agent' => array(
+                'name'  => get_post_meta($post->ID, '_property_agent_name', true) ?: '',
+                'phone' => get_post_meta($post->ID, '_property_agent_phone', true) ?: '',
+                'email' => get_post_meta($post->ID, '_property_agent_email', true) ?: '',
+                'photo' => get_post_meta($post->ID, '_property_agent_photo', true) ?: '',
+            ),
+            // Repeatable additional details stored as JSON in post meta
+            'additional_details' => json_decode(get_post_meta($post->ID, '_property_additional_details', true) ?: '[]', true),
+            // Repeatable FAQs stored as JSON in post meta
+            'faqs' => json_decode(get_post_meta($post->ID, '_property_faqs', true) ?: '[]', true),
         );
         
         // Add custom taxonomy data
@@ -863,6 +1071,17 @@ function property_plugin_get_property($request) {
         'floor' => !empty($floors) ? $floors[0] : 'N/A',
         'garage' => $garage ?: '',
         'gallery' => $gallery,
+        // Per-property agent meta (optional)
+        'agent' => array(
+            'name'  => get_post_meta($post->ID, '_property_agent_name', true) ?: '',
+            'phone' => get_post_meta($post->ID, '_property_agent_phone', true) ?: '',
+            'email' => get_post_meta($post->ID, '_property_agent_email', true) ?: '',
+            'photo' => get_post_meta($post->ID, '_property_agent_photo', true) ?: '',
+        ),
+        // Repeatable additional details stored as JSON in post meta
+        'additional_details' => json_decode(get_post_meta($post->ID, '_property_additional_details', true) ?: '[]', true),
+        // Repeatable FAQs stored as JSON in post meta
+        'faqs' => json_decode(get_post_meta($post->ID, '_property_faqs', true) ?: '[]', true),
     );
     
     // Add custom taxonomy data
@@ -1035,6 +1254,7 @@ function property_plugin_enqueue_assets() {
                         'contactFormSubtitle' => get_option('property_plugin_contact_form_subtitle', 'Schedule a tour or request more information about this property.'),
                         'featuredLabel' => get_option('property_plugin_featured_label', 'FEATURED PROPERTY'),
                         'scheduleTourUrl' => get_option('property_plugin_schedule_tour_url', ''),
+                                'currentUserId' => get_current_user_id(),
                     )
                 ));
                 
@@ -1145,6 +1365,219 @@ function property_plugin_create_demo_property() {
     update_option('property_plugin_demo_created', $post_id);
     error_log('[Property Plugin Demo] Demo property created — Post ID: ' . $post_id);
 }
+
+
+/**
+ * Install default data (properties + settings) from JSON files.
+ * Runs once and sideloads images, creates properties and updates plugin settings.
+ */
+function property_plugin_install_default_data($force = false) {
+    // Only run once unless forced
+    if (!$force && get_option('property_plugin_default_data_installed')) {
+        return;
+    }
+
+    $data_dir = PROPERTY_PLUGIN_PATH . 'data/';
+    $props_file = $data_dir . 'default-properties.json';
+    $settings_file = $data_dir . 'default-settings.json';
+
+    if (!file_exists($props_file)) {
+        error_log('[Property Plugin] default properties JSON not found: ' . $props_file);
+        return;
+    }
+
+    // Load JSON files
+    $props_json = file_get_contents($props_file);
+    $props = json_decode($props_json, true);
+    if (!is_array($props)) {
+        error_log('[Property Plugin] Invalid default properties JSON');
+        return;
+    }
+
+    // Ensure media functions available
+    require_once ABSPATH . 'wp-admin/includes/media.php';
+    require_once ABSPATH . 'wp-admin/includes/file.php';
+    require_once ABSPATH . 'wp-admin/includes/image.php';
+
+    foreach ($props as $p) {
+        // Skip if a property with the same title exists
+        $existing = get_page_by_title($p['title'] ?? '', OBJECT, 'property');
+        if ($existing) continue;
+
+        $post_arr = array(
+            'post_type'    => 'property',
+            'post_title'   => sanitize_text_field($p['title'] ?? 'Demo Property'),
+            'post_content' => wp_kses_post($p['content'] ?? ''),
+            'post_excerpt' => sanitize_text_field($p['excerpt'] ?? ''),
+            'post_status'  => 'publish',
+        );
+
+        $post_id = wp_insert_post($post_arr, true);
+        if (is_wp_error($post_id)) {
+            error_log('[Property Plugin] Failed to create demo property: ' . $post_id->get_error_message());
+            continue;
+        }
+
+        // Taxonomies
+        if (!empty($p['property_type'])) wp_set_object_terms($post_id, array(sanitize_text_field($p['property_type'])), 'property-type');
+        if (!empty($p['location'])) wp_set_object_terms($post_id, array(sanitize_text_field($p['location'])), 'property-location');
+        if (!empty($p['bedrooms'])) wp_set_object_terms($post_id, array(sanitize_text_field($p['bedrooms'])), 'bedrooms');
+        if (!empty($p['bathrooms'])) wp_set_object_terms($post_id, array(sanitize_text_field($p['bathrooms'])), 'bathrooms');
+        if (!empty($p['floor'])) wp_set_object_terms($post_id, array(sanitize_text_field($p['floor'])), 'property-floor');
+
+        // Meta fields
+        if (isset($p['price'])) update_post_meta($post_id, '_property_price', sanitize_text_field($p['price']));
+        if (isset($p['area'])) update_post_meta($post_id, '_property_area', sanitize_text_field($p['area']));
+        if (isset($p['address'])) update_post_meta($post_id, '_property_address', sanitize_text_field($p['address']));
+        if (isset($p['city'])) update_post_meta($post_id, '_property_city', sanitize_text_field($p['city']));
+        if (isset($p['state'])) update_post_meta($post_id, '_property_state', sanitize_text_field($p['state']));
+        if (isset($p['zipcode'])) update_post_meta($post_id, '_property_zipcode', sanitize_text_field($p['zipcode']));
+        if (isset($p['country'])) update_post_meta($post_id, '_property_country', sanitize_text_field($p['country']));
+        if (isset($p['status'])) update_post_meta($post_id, '_property_status', sanitize_text_field($p['status']));
+        if (isset($p['garage'])) update_post_meta($post_id, '_property_garage', sanitize_text_field($p['garage']));
+
+        // Featured image sideload
+        if (!empty($p['thumbnail_url'])) {
+            $att_id = media_sideload_image($p['thumbnail_url'], $post_id, $p['title'] ?? 'Featured image', 'id');
+            if (!is_wp_error($att_id)) {
+                set_post_thumbnail($post_id, $att_id);
+            } else {
+                error_log('[Property Plugin] Failed to sideload thumbnail: ' . $att_id->get_error_message());
+            }
+        }
+
+        // Gallery
+        $gallery_ids = array();
+        if (!empty($p['gallery_urls']) && is_array($p['gallery_urls'])) {
+            foreach ($p['gallery_urls'] as $gurl) {
+                $gatt = media_sideload_image($gurl, $post_id, 'Gallery image', 'id');
+                if (!is_wp_error($gatt)) $gallery_ids[] = $gatt;
+            }
+            if (!empty($gallery_ids)) update_post_meta($post_id, '_property_gallery', implode(',', $gallery_ids));
+        }
+
+        // Agent meta
+        if (!empty($p['agent']) && is_array($p['agent'])) {
+            $agent = $p['agent'];
+            if (isset($agent['name'])) update_post_meta($post_id, '_property_agent_name', sanitize_text_field($agent['name']));
+            if (isset($agent['phone'])) update_post_meta($post_id, '_property_agent_phone', sanitize_text_field($agent['phone']));
+            if (isset($agent['email'])) update_post_meta($post_id, '_property_agent_email', sanitize_email($agent['email']));
+            if (!empty($agent['photo'])) {
+                $aatt = media_sideload_image($agent['photo'], $post_id, sanitize_text_field($agent['name'] ?? 'agent'), 'id');
+                if (!is_wp_error($aatt)) {
+                    update_post_meta($post_id, '_property_agent_photo', wp_get_attachment_image_url($aatt, 'thumbnail'));
+                }
+            }
+        }
+
+        // Additional details
+        if (!empty($p['additional_details'])) {
+            update_post_meta($post_id, '_property_additional_details', wp_json_encode($p['additional_details']));
+        }
+
+        error_log('[Property Plugin] Imported demo property: ' . $post_id . ' - ' . ($p['title'] ?? ''));
+    }
+
+    // Install settings
+    if (file_exists($settings_file)) {
+        $sjson = file_get_contents($settings_file);
+        $sdata = json_decode($sjson, true);
+        if (is_array($sdata)) {
+            // Optionally sideload bannerImage and ctaImage and agentPhoto to store attachment URLs
+            if (!empty($sdata['bannerImage'])) {
+                $batt = media_sideload_image($sdata['bannerImage'], 0, 'Banner image', 'id');
+                if (!is_wp_error($batt)) {
+                    $banner_url = wp_get_attachment_image_url($batt, 'large');
+                    update_option('property_plugin_banner_image', $banner_url);
+                } else {
+                    update_option('property_plugin_banner_image', esc_url_raw($sdata['bannerImage']));
+                }
+            }
+
+            if (!empty($sdata['ctaImage'])) {
+                $catt = media_sideload_image($sdata['ctaImage'], 0, 'CTA image', 'id');
+                if (!is_wp_error($catt)) {
+                    $cta_url = wp_get_attachment_image_url($catt, 'large');
+                    update_option('property_plugin_cta_image', $cta_url);
+                } else {
+                    update_option('property_plugin_cta_image', esc_url_raw($sdata['ctaImage']));
+                }
+            }
+
+            if (!empty($sdata['agentPhoto'])) {
+                $aatt = media_sideload_image($sdata['agentPhoto'], 0, 'Agent photo', 'id');
+                if (!is_wp_error($aatt)) {
+                    $agent_photo_url = wp_get_attachment_image_url($aatt, 'thumbnail');
+                    update_option('property_plugin_agent_photo', $agent_photo_url);
+                } else {
+                    update_option('property_plugin_agent_photo', esc_url_raw($sdata['agentPhoto']));
+                }
+            }
+
+            // Save remaining simple settings
+            $simple_keys = array(
+                'headerText' => 'property_plugin_header_text',
+                'bannerSubtitle' => 'property_plugin_banner_subtitle',
+                'bannerHeight' => 'property_plugin_banner_height',
+                'bannerOverlay' => 'property_plugin_banner_overlay',
+                'bannerOverlayColor' => 'property_plugin_banner_overlay_color',
+                'primaryColor' => 'property_plugin_primary_color',
+                'secondaryColor' => 'property_plugin_secondary_color',
+                'textColor' => 'property_plugin_text_color',
+                'backgroundColor' => 'property_plugin_background_color',
+                'cardBackground' => 'property_plugin_card_background',
+                'fontFamily' => 'property_plugin_font_family',
+                'fontSize' => 'property_plugin_font_size',
+                'propertiesPerPage' => 'property_plugin_properties_per_page',
+                'cardLayout' => 'property_plugin_card_layout',
+                'showBadge' => 'property_plugin_show_badge',
+                'showArea' => 'property_plugin_show_area',
+                'showAddress' => 'property_plugin_show_address',
+                'sidebarPosition' => 'property_plugin_sidebar_position',
+                'sidebarWidth' => 'property_plugin_sidebar_width',
+                'enableFilters' => 'property_plugin_enable_filters',
+                'enableCompare' => 'property_plugin_enable_compare',
+                'enableLeadForm' => 'property_plugin_enable_lead_form',
+                'leadFormTitle' => 'property_plugin_lead_form_title',
+                'contactEmail' => 'property_plugin_contact_email',
+                'contactPhone' => 'property_plugin_contact_phone',
+                'customCSS' => 'property_plugin_custom_css',
+                'googleAnalytics' => 'property_plugin_google_analytics',
+                'ctaTitle' => 'property_plugin_cta_title',
+                'ctaDescription' => 'property_plugin_cta_description',
+                'ctaButtonText' => 'property_plugin_cta_button_text',
+                'ctaButtonUrl' => 'property_plugin_cta_button_url',
+                'ctaBgColor' => 'property_plugin_cta_bg_color',
+                'ctaTextColor' => 'property_plugin_cta_text_color',
+                'featuresBgColor' => 'property_plugin_features_bg_color',
+                'featuresTextColor' => 'property_plugin_features_text_color',
+                'agentName' => 'property_plugin_agent_name',
+                'agentRole' => 'property_plugin_agent_role',
+                'agentPhone' => 'property_plugin_agent_phone',
+                'agentEmail' => 'property_plugin_agent_email',
+                'contactFormHeading' => 'property_plugin_contact_form_heading',
+                'contactFormSubtitle' => 'property_plugin_contact_form_subtitle',
+                'featuredLabel' => 'property_plugin_featured_label',
+                'scheduleTourUrl' => 'property_plugin_schedule_tour_url',
+            );
+
+            foreach ($simple_keys as $src => $opt_name) {
+                if (isset($sdata[$src])) update_option($opt_name, $sdata[$src]);
+            }
+        }
+    }
+
+    // Mark installed
+    update_option('property_plugin_default_data_installed', 1);
+    error_log('[Property Plugin] Default data import complete');
+}
+
+// Hook import on activation and on admin_init if not installed
+add_action('admin_init', function() {
+    if (!get_option('property_plugin_default_data_installed')) {
+        property_plugin_install_default_data();
+    }
+});
 
 /**
  * Activation hook

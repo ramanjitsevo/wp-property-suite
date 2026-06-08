@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import './LeadFormModal.css';
 
 function LeadFormModal({ property, onClose, onSubmit }) {
@@ -36,8 +37,6 @@ function LeadFormModal({ property, onClose, onSubmit }) {
       propertyTitle: property?.title || '',
     };
 
-    console.log('[LeadForm] Submitting lead for property:', property?.title, payload);
-
     try {
       const response = await fetch(`${apiUrl}/leads`, {
         method:  'POST',
@@ -49,14 +48,12 @@ function LeadFormModal({ property, onClose, onSubmit }) {
       });
 
       const data = await response.json();
-      console.log('[LeadForm] Response status:', response.status, data);
 
       if (!response.ok) {
         throw new Error(data.message || `Server error (${response.status})`);
       }
 
       setSubmitSuccess(true);
-      console.log('[LeadForm] SUCCESS — leadId:', data.leadId, '| emailSent:', data.emailSent);
 
       // Notify parent and close after a short delay so user sees the success message
       setTimeout(() => {
@@ -64,20 +61,40 @@ function LeadFormModal({ property, onClose, onSubmit }) {
       }, 1200);
 
     } catch (err) {
-      console.error('[LeadForm] ERROR:', err.message);
       setSubmitError(err.message || 'Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (!property) return null;
+  const [mounted, setMounted] = useState(false);
 
-  return (
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Ensure Font Awesome stylesheet is loaded for icon classes like "fas fa-user"
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    if (document.getElementById('property-plugin-fa')) return;
+    const link = document.createElement('link');
+    link.id = 'property-plugin-fa';
+    link.rel = 'stylesheet';
+    link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css';
+    link.crossOrigin = 'anonymous';
+    document.head.appendChild(link);
+    return () => {
+      // keep the stylesheet for other components; don't remove on unmount
+    };
+  }, []);
+
+  if (!property || !mounted) return null;
+
+  const modal = (
     <div className="lead-modal-overlay" onClick={onClose}>
       <div className="lead-modal-content" onClick={(e) => e.stopPropagation()}>
         <button className="lead-modal-close" onClick={onClose}>×</button>
-        
+
         <div className="lead-modal-body">
           {/* Left Side */}
           <div className="lead-modal-left">
@@ -138,7 +155,7 @@ function LeadFormModal({ property, onClose, onSubmit }) {
                 <form onSubmit={handleSubmit} className="lead-form">
                   <div className="form-group">
                     <div className="input-icon-wrapper">
-                      <span className="input-icon">👤</span>
+                      <i className="input-icon fas fa-user" aria-hidden="true"></i>
                       <input
                         type="text"
                         name="name"
@@ -153,7 +170,7 @@ function LeadFormModal({ property, onClose, onSubmit }) {
 
                   <div className="form-group">
                     <div className="input-icon-wrapper">
-                      <span className="input-icon">✉</span>
+                      <i className="input-icon fas fa-envelope" aria-hidden="true"></i>
                       <input
                         type="email"
                         name="email"
@@ -168,7 +185,7 @@ function LeadFormModal({ property, onClose, onSubmit }) {
 
                   <div className="form-group">
                     <div className="input-icon-wrapper">
-                      <span className="input-icon">📞</span>
+                      <i className="input-icon fas fa-phone" aria-hidden="true"></i>
                       <input
                         type="tel"
                         name="phone"
@@ -183,7 +200,7 @@ function LeadFormModal({ property, onClose, onSubmit }) {
 
                   <div className="form-group">
                     <div className="input-icon-wrapper">
-                      <span className="input-icon">💬</span>
+                      <i className="input-icon fas fa-comment" aria-hidden="true"></i>
                       <textarea
                         name="message"
                         placeholder="I'm interested in..."
@@ -204,7 +221,7 @@ function LeadFormModal({ property, onClose, onSubmit }) {
                   </button>
 
                   <p className="form-privacy-note">
-                    Your information is safe with us. We don't share your details with third parties.
+                    Your information is secure and will never be shared with third parties
                   </p>
                 </form>
               </>
@@ -214,6 +231,9 @@ function LeadFormModal({ property, onClose, onSubmit }) {
       </div>
     </div>
   );
+
+  return createPortal(modal, document.body);
 }
 
 export default LeadFormModal;
+

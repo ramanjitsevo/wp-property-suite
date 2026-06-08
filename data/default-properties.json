@@ -1,0 +1,110 @@
+[
+  {
+    "title": "Modern Luxury Villa — Beverly Hills",
+    "content": "This stunning modern villa offers the perfect blend of luxury, comfort, and contemporary design. Located in one of the most prestigious neighborhoods in Beverly Hills, this property features high-end finishes, spacious living areas, and breathtaking panoramic views.\n\nThe open-concept kitchen boasts premium stainless-steel appliances, a large island, and custom cabinetry. The master suite includes a walk-in closet, spa-like bathroom, and a private balcony overlooking the garden and pool.\n\nAdditional highlights include smart home automation, a home theatre, landscaped gardens, a swimming pool, and a 2-car garage.",
+    "excerpt": "A stunning modern villa in Beverly Hills with pool, smart home features, and panoramic views.",
+    "price": "850000",
+    "area": "2500",
+    "address": "1234 Sunset Boulevard, Beverly Hills, CA",
+    "city": "Beverly Hills",
+    "state": "California",
+    "zipcode": "90210",
+    "country": "United States",
+    "status": "for-sale",
+    "property_type": "Villa",
+    "location": "Beverly Hills",
+    "bedrooms": "4",
+    "bathrooms": "3",
+    "floor": "2",
+    "garage": "2",
+    "thumbnail_url": "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&q=80",
+    "gallery_urls": [
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&q=80",
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1200&q=80",
+      "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=1200&q=80"
+    ],
+    "agent": {
+      "name": "Sophia Reynolds",
+      "phone": "+1 (310) 555-0147",
+      "email": "sophia.reynolds@example.com",
+      "photo": "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?w=400&q=80"
+    },
+    "additional_details": [
+      { "label": "Year Built", "value": "2018" },
+      { "label": "Heating", "value": "Central" },
+      { "label": "Parking", "value": "2 car garage" }
+    ]
+  },
+  {
+    "title": "Cozy Downtown Apartment — New York",
+    "content": "Stylish one-bedroom apartment located in the heart of downtown Manhattan. This cozy unit offers a bright living room, polished hardwood floors, an updated kitchen with stainless appliances, and a private balcony with city views. Perfect for young professionals or investors.\n\nBuilding amenities include a fitness center, concierge service, and secure access.",
+    "excerpt": "Stylish 1BR apartment in downtown Manhattan with balcony and building amenities.",
+    "price": "420000",
+    "area": "750",
+    "address": "200 West 54th St, New York, NY",
+    "city": "New York",
+    "state": "New York",
+    "zipcode": "10019",
+    "country": "United States",
+    "status": "for-sale",
+    "property_type": "Apartment",
+    "location": "Manhattan",
+    "bedrooms": "1",
+    "bathrooms": "1",
+    "floor": "8",
+    "garage": "0",
+    "thumbnail_url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1200&q=80",
+    "gallery_urls": [
+      "https://images.unsplash.com/photo-1494526585095-c41746248156?w=1200&q=80",
+      "https://images.unsplash.com/photo-1505691723518-36a1fb9fa2d9?w=1200&q=80",
+      "https://images.unsplash.com/photo-1501183638710-841dd1904471?w=1200&q=80"
+    ],
+    "agent": {
+      "name": "Liam Carter",
+      "phone": "+1 (212) 555-0199",
+      "email": "liam.carter@example.com",
+      "photo": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&q=80"
+    },
+    "additional_details": [
+      { "label": "HOA Fee", "value": "$450/month" },
+      { "label": "Flooring", "value": "Hardwood" },
+      { "label": "Laundry", "value": "In-building" }
+    ]
+  },
+  {
+    "title": "Beachfront Bungalow — Malibu",
+    "content": "Charming beachfront bungalow with direct access to the sand and ocean views. This 2-bedroom cottage features an open living area, coastal-inspired interiors, and a spacious deck for entertaining. Ideal as a vacation retreat or rental property.\n\nThe property is a short drive from local dining and shops and sits in a peaceful coastal community.",
+    "excerpt": "Cozy 2BR beachfront bungalow in Malibu with ocean views and private deck.",
+    "price": "1250000",
+    "area": "1200",
+    "address": "88 Ocean Drive, Malibu, CA",
+    "city": "Malibu",
+    "state": "California",
+    "zipcode": "90265",
+    "country": "United States",
+    "status": "for-sale",
+    "property_type": "Bungalow",
+    "location": "Malibu",
+    "bedrooms": "2",
+    "bathrooms": "2",
+    "floor": "1",
+    "garage": "1",
+    "thumbnail_url": "https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=1200&q=80",
+    "gallery_urls": [
+      "https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?w=1200&q=80",
+      "https://images.unsplash.com/photo-1505691723518-36a1fb9fa2d9?w=1200&q=80",
+      "https://images.unsplash.com/photo-1501183638710-841dd1904471?w=1200&q=80"
+    ],
+    "agent": {
+      "name": "Olivia Bennett",
+      "phone": "+1 (310) 555-0123",
+      "email": "olivia.bennett@example.com",
+      "photo": "https://images.unsplash.com/photo-1545996124-1b5d6f04f1f0?w=400&q=80"
+    },
+    "additional_details": [
+      { "label": "Lot Size", "value": "0.12 acres" },
+      { "label": "View", "value": "Ocean" },
+      { "label": "Cooling", "value": "Ceiling Fans" }
+    ]
+  }
+]
