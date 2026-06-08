@@ -19,8 +19,6 @@ Thumbs.db
 # classic editor
 classic-editor/
 
-# Source files (React development)
-src/
 
 # Keep build folder (it's needed for production)
 # build/ is tracked in git
