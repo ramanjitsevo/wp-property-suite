@@ -97,6 +97,17 @@ function property_plugin_register_settings() {
         register_setting('property_plugin_sections', "property_plugin_feature_{$i}_title", array('sanitize_callback' => 'sanitize_text_field'));
         register_setting('property_plugin_sections', "property_plugin_feature_{$i}_description", array('sanitize_callback' => 'sanitize_text_field'));
     }
+
+    // Single Property Page Settings
+    register_setting('property_plugin_single', 'property_plugin_agent_name', array('sanitize_callback' => 'sanitize_text_field'));
+    register_setting('property_plugin_single', 'property_plugin_agent_photo', array('sanitize_callback' => 'esc_url_raw'));
+    register_setting('property_plugin_single', 'property_plugin_agent_role', array('sanitize_callback' => 'sanitize_text_field'));
+    register_setting('property_plugin_single', 'property_plugin_agent_phone', array('sanitize_callback' => 'sanitize_text_field'));
+    register_setting('property_plugin_single', 'property_plugin_agent_email', array('sanitize_callback' => 'sanitize_email'));
+    register_setting('property_plugin_single', 'property_plugin_contact_form_heading', array('sanitize_callback' => 'sanitize_text_field'));
+    register_setting('property_plugin_single', 'property_plugin_contact_form_subtitle', array('sanitize_callback' => 'sanitize_text_field'));
+    register_setting('property_plugin_single', 'property_plugin_featured_label', array('sanitize_callback' => 'sanitize_text_field'));
+    register_setting('property_plugin_single', 'property_plugin_schedule_tour_url', array('sanitize_callback' => 'esc_url_raw'));
 }
 add_action('admin_init', 'property_plugin_register_settings');
 
@@ -134,6 +145,10 @@ function property_plugin_settings_page() {
                 <button class="tab-button" data-tab="taxonomies">
                     <span class="dashicons dashicons-category"></span>
                     <?php _e('Custom Taxonomies', 'property-plugin'); ?>
+                </button>
+                <button class="tab-button" data-tab="single">
+                    <span class="dashicons dashicons-admin-page"></span>
+                    <?php _e('Single Property Page', 'property-plugin'); ?>
                 </button>
                 <button class="tab-button" data-tab="contact">
                     <span class="dashicons dashicons-email"></span>
@@ -521,6 +536,108 @@ function property_plugin_settings_page() {
                                 ?>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Single Property Page Tab -->
+                <div class="tab-content" id="single">
+                    <div class="settings-section">
+                        <h2><?php _e('Single Property Page', 'property-plugin'); ?></h2>
+                        <p class="section-description"><?php _e('Customize the agent card, contact form, and labels shown on the single property detail page.', 'property-plugin'); ?></p>
+
+                        <h3><?php _e('Agent Card', 'property-plugin'); ?></h3>
+                        <table class="form-table">
+                            <tr>
+                                <th scope="row"><label for="agent_name"><?php _e('Agent Name', 'property-plugin'); ?></label></th>
+                                <td>
+                                    <input type="text" id="agent_name" name="property_plugin_agent_name"
+                                           value="<?php echo esc_attr(get_option('property_plugin_agent_name', 'John Smith')); ?>"
+                                           class="regular-text" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="agent_photo"><?php _e('Agent Photo', 'property-plugin'); ?></label></th>
+                                <td>
+                                    <div class="image-upload-container" style="text-align:left;">
+                                        <img id="agent_photo_preview"
+                                             src="<?php echo esc_url(get_option('property_plugin_agent_photo', '')); ?>"
+                                             style="<?php echo get_option('property_plugin_agent_photo') ? '' : 'display:none;'; ?>width:80px; height:80px; border-radius:50%; object-fit:cover; margin-bottom:10px;" />
+                                        <br/>
+                                        <input type="hidden" id="agent_photo" name="property_plugin_agent_photo"
+                                               value="<?php echo esc_attr(get_option('property_plugin_agent_photo', '')); ?>" />
+                                        <button type="button" class="button pp-upload-img" data-target="agent_photo"><?php _e('Upload Photo', 'property-plugin'); ?></button>
+                                        <button type="button" class="button pp-remove-img" data-target="agent_photo"
+                                                <?php echo get_option('property_plugin_agent_photo') ? '' : 'style="display:none;"'; ?>><?php _e('Remove', 'property-plugin'); ?></button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="agent_role"><?php _e('Agent Role / Title', 'property-plugin'); ?></label></th>
+                                <td>
+                                    <input type="text" id="agent_role" name="property_plugin_agent_role"
+                                           value="<?php echo esc_attr(get_option('property_plugin_agent_role', 'Property Agent')); ?>"
+                                           class="regular-text" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="agent_phone"><?php _e('Agent Phone', 'property-plugin'); ?></label></th>
+                                <td>
+                                    <input type="text" id="agent_phone" name="property_plugin_agent_phone"
+                                           value="<?php echo esc_attr(get_option('property_plugin_agent_phone', '+1 (555) 123-4567')); ?>"
+                                           class="regular-text" placeholder="+1 (555) 123-4567" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="agent_email"><?php _e('Agent Email', 'property-plugin'); ?></label></th>
+                                <td>
+                                    <input type="email" id="agent_email" name="property_plugin_agent_email"
+                                           value="<?php echo esc_attr(get_option('property_plugin_agent_email', '')); ?>"
+                                           class="regular-text" placeholder="agent@example.com" />
+                                </td>
+                            </tr>
+                        </table>
+
+                        <h3 style="margin-top:30px;"><?php _e('Contact Form', 'property-plugin'); ?></h3>
+                        <table class="form-table">
+                            <tr>
+                                <th scope="row"><label for="contact_form_heading"><?php _e('Form Heading', 'property-plugin'); ?></label></th>
+                                <td>
+                                    <input type="text" id="contact_form_heading" name="property_plugin_contact_form_heading"
+                                           value="<?php echo esc_attr(get_option('property_plugin_contact_form_heading', 'Get More Details')); ?>"
+                                           class="regular-text" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="contact_form_subtitle"><?php _e('Form Subtitle', 'property-plugin'); ?></label></th>
+                                <td>
+                                    <input type="text" id="contact_form_subtitle" name="property_plugin_contact_form_subtitle"
+                                           value="<?php echo esc_attr(get_option('property_plugin_contact_form_subtitle', 'Schedule a tour or request more information about this property.')); ?>"
+                                           class="large-text" />
+                                </td>
+                            </tr>
+                        </table>
+
+                        <h3 style="margin-top:30px;"><?php _e('Labels & Links', 'property-plugin'); ?></h3>
+                        <table class="form-table">
+                            <tr>
+                                <th scope="row"><label for="featured_label"><?php _e('Featured Label Text', 'property-plugin'); ?></label></th>
+                                <td>
+                                    <input type="text" id="featured_label" name="property_plugin_featured_label"
+                                           value="<?php echo esc_attr(get_option('property_plugin_featured_label', 'FEATURED PROPERTY')); ?>"
+                                           class="regular-text" />
+                                    <p class="description"><?php _e('Small label shown above the property title in the sidebar', 'property-plugin'); ?></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><label for="schedule_tour_url"><?php _e('Schedule Tour URL', 'property-plugin'); ?></label></th>
+                                <td>
+                                    <input type="url" id="schedule_tour_url" name="property_plugin_schedule_tour_url"
+                                           value="<?php echo esc_attr(get_option('property_plugin_schedule_tour_url', '')); ?>"
+                                           class="large-text" placeholder="https://calendly.com/your-link (leave empty to scroll to contact form)" />
+                                    <p class="description"><?php _e('External booking link (e.g. Calendly). Leave empty to scroll to the on-page contact form instead.', 'property-plugin'); ?></p>
+                                </td>
+                            </tr>
+                        </table>
                     </div>
                 </div>
 
@@ -1335,6 +1452,16 @@ function property_plugin_save_all_settings_ajax() {
         'property_plugin_feature_4_icon' => 'sanitize_text_field',
         'property_plugin_feature_4_title' => 'sanitize_text_field',
         'property_plugin_feature_4_description' => 'sanitize_text_field',
+        // Single property page
+        'property_plugin_agent_name' => 'sanitize_text_field',
+        'property_plugin_agent_photo' => 'esc_url_raw',
+        'property_plugin_agent_role' => 'sanitize_text_field',
+        'property_plugin_agent_phone' => 'sanitize_text_field',
+        'property_plugin_agent_email' => 'sanitize_email',
+        'property_plugin_contact_form_heading' => 'sanitize_text_field',
+        'property_plugin_contact_form_subtitle' => 'sanitize_text_field',
+        'property_plugin_featured_label' => 'sanitize_text_field',
+        'property_plugin_schedule_tour_url' => 'esc_url_raw',
     );
     
     foreach ($settings as $key => $value) {

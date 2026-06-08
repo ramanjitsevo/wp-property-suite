@@ -1025,6 +1025,16 @@ function property_plugin_enqueue_assets() {
                                 'description' => get_option('property_plugin_feature_4_description', 'Enjoy a secure and hassle-free property buying or renting process.'),
                             ),
                         ),
+                        // Single Property Page
+                        'agentName' => get_option('property_plugin_agent_name', 'John Smith'),
+                        'agentPhoto' => get_option('property_plugin_agent_photo', ''),
+                        'agentRole' => get_option('property_plugin_agent_role', 'Property Agent'),
+                        'agentPhone' => get_option('property_plugin_agent_phone', '+1 (555) 123-4567'),
+                        'agentEmail' => get_option('property_plugin_agent_email', ''),
+                        'contactFormHeading' => get_option('property_plugin_contact_form_heading', 'Get More Details'),
+                        'contactFormSubtitle' => get_option('property_plugin_contact_form_subtitle', 'Schedule a tour or request more information about this property.'),
+                        'featuredLabel' => get_option('property_plugin_featured_label', 'FEATURED PROPERTY'),
+                        'scheduleTourUrl' => get_option('property_plugin_schedule_tour_url', ''),
                     )
                 ));
                 
