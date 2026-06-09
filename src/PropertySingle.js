@@ -212,6 +212,95 @@ function PropertySingle({ property, onBack, settings }) {
     setIsFavorite(!isFavorite);
   };
 
+  // SEO Helper functions
+  const getPageUrl = () => window.location.href;
+  const getPageTitle = () => property?.title || 'Check out this property';
+  const getPropertyDescription = () => {
+    if (property?.content) {
+      // Strip HTML tags for meta description
+      const temp = document.createElement('div');
+      temp.innerHTML = property.content;
+      const text = temp.textContent || temp.innerText || '';
+      return text.substring(0, 160);
+    }
+    return `${property?.title || 'Property'} located at ${property?.address || ''}, ${property?.city || ''}. ${property?.bedrooms || ''} bed, ${property?.bathrooms || ''} bath, ${property?.area || ''} sq ft.`;
+  };
+
+  const getCanonicalUrl = () => {
+    const baseUrl = window.location.origin + window.location.pathname;
+    return baseUrl;
+  };
+
+  // Update document head for SEO
+  useEffect(() => {
+    if (!property?.title) return;
+
+    // Update page title
+    const originalTitle = document.title;
+    document.title = `${property.title} | ${property.address ? property.address + ', ' : ''}${property.city || ''}`;
+
+    // Update meta description
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (!metaDesc) {
+      metaDesc = document.createElement('meta');
+      metaDesc.name = 'description';
+      document.head.appendChild(metaDesc);
+    }
+    metaDesc.content = getPropertyDescription();
+
+    // Update canonical URL
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.rel = 'canonical';
+      document.head.appendChild(canonical);
+    }
+    canonical.href = getCanonicalUrl();
+
+    // Update Open Graph tags
+    const ogTags = {
+      'og:title': `${property.title}`,
+      'og:description': getPropertyDescription(),
+      'og:type': 'article',
+      'og:url': getPageUrl(),
+      'og:image': galleryImages[0] || property.thumbnail || '',
+      'og:locale': 'en_US',
+    };
+
+    Object.entries(ogTags).forEach(([property_name, content]) => {
+      let meta = document.querySelector(`meta[property="${property_name}"]`);
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.setAttribute('property', property_name);
+        document.head.appendChild(meta);
+      }
+      meta.content = content;
+    });
+
+    // Update Twitter Card tags
+    const twitterTags = {
+      'twitter:card': 'summary_large_image',
+      'twitter:title': property.title,
+      'twitter:description': getPropertyDescription(),
+      'twitter:image': galleryImages[0] || property.thumbnail || '',
+    };
+
+    Object.entries(twitterTags).forEach(([name, content]) => {
+      let meta = document.querySelector(`meta[name="${name}"]`);
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.name = name;
+        document.head.appendChild(meta);
+      }
+      meta.content = content;
+    });
+
+    // Cleanup on unmount
+    return () => {
+      document.title = originalTitle;
+    };
+  }, [property?.title, property?.address, property?.city, property?.content]);
+
   const handleShare = async () => {
     const url = window.location.href;
     const title = property?.title || 'Check out this property';
@@ -222,9 +311,6 @@ function PropertySingle({ property, onBack, settings }) {
       alert('Property link copied to clipboard!');
     }
   };
-
-  const getPageUrl = () => encodeURIComponent(window.location.href);
-  const getPageTitle = () => encodeURIComponent(property?.title || 'Check out this property');
 
   const renderBottomBar = () => (
     <div className="property-bottom-bar property-bottom-bar-spaced">
@@ -252,30 +338,104 @@ function PropertySingle({ property, onBack, settings }) {
 
   return (
     <article className="property-single-page" itemScope itemType="https://schema.org/RealEstateListing">
+      {/* Enhanced JSON-LD Structured Data */}
+      <script type="application/ld+json">
+        {JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'RealEstateListing',
+          'name': property.title,
+          'description': getPropertyDescription(),
+          'url': getCanonicalUrl(),
+          'image': galleryImages,
+          'price': property.price,
+          'priceCurrency': 'USD',
+          'address': {
+            '@type': 'PostalAddress',
+            'streetAddress': property.address || '',
+            'addressLocality': property.city || '',
+            'addressRegion': property.state || '',
+            'postalCode': property.zipcode || '',
+            'addressCountry': property.country || '',
+          },
+          'numberOfRooms': property.bedrooms || 0,
+          'numberOfBathroomsTotal': property.bathrooms || 0,
+          'floorSize': {
+            '@type': 'QuantitativeValue',
+            'value': property.area || 0,
+            'unitCode': 'MTK',
+          },
+          'propertyType': property.property_type || 'Residential',
+          'datePosted': property.date || new Date().toISOString().split('T')[0],
+        })}
+      </script>
+
+      {/* FAQ Structured Data */}
       {faqItems.length > 0 && (
         <script type="application/ld+json">
           {JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'FAQPage',
-            mainEntity: faqItems.map((item) => ({
+            'mainEntity': faqItems.map((item) => ({
               '@type': 'Question',
-              name: item.question,
-              acceptedAnswer: {
+              'name': item.question,
+              'acceptedAnswer': {
                 '@type': 'Answer',
-                text: item.answer,
+                'text': item.answer,
               },
             })),
           })}
         </script>
       )}
 
-      <nav className="property-breadcrumb" aria-label="Breadcrumb">
+      {/* Breadcrumb Structured Data */}
+      <script type="application/ld+json">
+        {JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'BreadcrumbList',
+          'itemListElement': [
+            {
+              '@type': 'ListItem',
+              'position': 1,
+              'name': 'Home',
+              'item': window.location.origin,
+            },
+            {
+              '@type': 'ListItem',
+              'position': 2,
+              'name': 'Properties',
+              'item': window.location.origin + '/properties',
+            },
+            {
+              '@type': 'ListItem',
+              'position': 3,
+              'name': property.title,
+              'item': getCanonicalUrl(),
+            },
+          ],
+        })}
+      </script>
+
+      {/* Breadcrumb Navigation with SEO-friendly structure */}
+      <nav className="property-breadcrumb" aria-label="Breadcrumb" itemScope itemType="https://schema.org/BreadcrumbList">
         <div className="property-plugin-container">
-          <button type="button" onClick={onBack} className="breadcrumb-link">Home</button>
-          <span className="breadcrumb-separator">›</span>
-          <button type="button" onClick={onBack} className="breadcrumb-link">Properties</button>
-          <span className="breadcrumb-separator">›</span>
-          <span className="breadcrumb-current">{property.title}</span>
+          <span itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
+            <button type="button" onClick={onBack} className="breadcrumb-link" itemProp="item">
+              <span itemProp="name">Home</span>
+            </button>
+            <meta itemProp="position" content="1" />
+          </span>
+          <span className="breadcrumb-separator" aria-hidden="true">›</span>
+          <span itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
+            <button type="button" onClick={onBack} className="breadcrumb-link" itemProp="item">
+              <span itemProp="name">Properties</span>
+            </button>
+            <meta itemProp="position" content="2" />
+          </span>
+          <span className="breadcrumb-separator" aria-hidden="true">›</span>
+          <span itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
+            <span className="breadcrumb-current" itemProp="name">{property.title}</span>
+            <meta itemProp="position" content="3" />
+          </span>
         </div>
       </nav>
 
@@ -286,10 +446,13 @@ function PropertySingle({ property, onBack, settings }) {
               <div className="gallery-main">
                 <img
                   src={galleryImages[mainImage]}
-                  alt={property.title}
+                  alt={`${property.title} - View ${mainImage + 1} of ${galleryImages.length}`}
                   className={`gallery-main-image ${isFullscreen ? 'gallery-main-image-fullscreen' : ''}`}
                   itemProp="image"
                   onClick={() => isFullscreen && setIsFullscreen(false)}
+                  loading={mainImage === 0 ? 'eager' : 'lazy'}
+                  width="800"
+                  height="600"
                 />
                 {!isFullscreen && (
                   <>
@@ -333,8 +496,11 @@ function PropertySingle({ property, onBack, settings }) {
                       key={index}
                       className={`gallery-thumb ${index === mainImage ? 'active' : ''}`}
                       onClick={() => setMainImage(index)}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`View image ${index + 1} of ${galleryImages.length}`}
                     >
-                      <img src={img} alt={`View ${index + 1}`} />
+                      <img src={img} alt={`Thumbnail ${index + 1}: ${property.title}`} loading="lazy" />
                     </div>
                   ))}
                   <button
@@ -375,10 +541,19 @@ function PropertySingle({ property, onBack, settings }) {
                     <h2>Property Location</h2>
                     <div className="map-placeholder">
                       {property.address ? (
-                        <address className="map-address" itemProp="address">
+                        <address className="map-address" itemProp="address" itemScope itemType="https://schema.org/PostalAddress">
                           <div className="map-pin"><i className="fas fa-map-marker-alt"></i></div>
-                          <p className="map-address-line">{property.address}</p>
-                          {[property.city, property.state, property.zipcode].filter(Boolean).join(', ')}
+                          <p className="map-address-line" itemProp="streetAddress">{property.address}</p>
+                          <span itemProp="addressLocality">{property.city}</span>
+                          {property.city && property.state && ', '}
+                          <span itemProp="addressRegion">{property.state}</span>
+                          {property.state && property.zipcode && ' '}
+                          <span itemProp="postalCode">{property.zipcode}</span>
+                          {property.country && (
+                            <>,
+                            <span itemProp="addressCountry">{property.country}</span>
+                            </>
+                          )}
                         </address>
                       ) : (
                         <>
@@ -444,10 +619,18 @@ function PropertySingle({ property, onBack, settings }) {
                 <h2 id="property-location-heading" className="section-heading">Property Location</h2>
                 <div className="map-placeholder map-placeholder-compact">
                   {property.address ? (
-                    <address className="map-address" itemProp="address">
+                    <address className="map-address" itemProp="address" itemScope itemType="https://schema.org/PostalAddress">
                       <div className="map-pin map-pin-compact"><i className="fas fa-map-marker-alt"></i></div>
-                      <p className="map-address-line map-address-line-large">{property.address}</p>
-                      <p className="map-address-region">{[property.city, property.state, property.zipcode, property.country].filter(Boolean).join(', ')}</p>
+                      <p className="map-address-line map-address-line-large" itemProp="streetAddress">{property.address}</p>
+                      <p className="map-address-region">
+                        <span itemProp="addressLocality">{property.city}</span>
+                        {property.city && property.state && ', '}
+                        <span itemProp="addressRegion">{property.state}</span>
+                        {property.state && property.zipcode && ', '}
+                        <span itemProp="postalCode">{property.zipcode}</span>
+                        {property.zipcode && property.country && ', '}
+                        <span itemProp="addressCountry">{property.country}</span>
+                      </p>
                     </address>
                   ) : (
                     <>
@@ -528,11 +711,13 @@ function PropertySingle({ property, onBack, settings }) {
               <div className="details-header">
                 <span className="featured-label">{settings?.featuredLabel || 'FEATURED PROPERTY'}</span>
                 <h1 className="property-title" itemProp="name">{property.title}</h1>
-                <p className="property-address">
-                  <i className="fas fa-map-marker-alt"></i> {property.address}
+                <p className="property-address" itemProp="address">
+                  <i className="fas fa-map-marker-alt" aria-hidden="true"></i>
+                  <span>{property.address}</span>
                 </p>
-                <div className="property-price-large">
-                  <span className="price">{property.price}</span>
+                <div className="property-price-large" itemProp="offers" itemScope itemType="https://schema.org/Offer">
+                  <span className="price" itemProp="price">{property.price}</span>
+                  <meta itemProp="priceCurrency" content="USD" />
                   <span className="status-badge">{statusLabel}</span>
                 </div>
               </div>
@@ -569,39 +754,41 @@ function PropertySingle({ property, onBack, settings }) {
 
               <div className="property-info-list">
                 <h4 className="property-title">Location Detail</h4>
-                <div className="info-row">
-                  <span className="info-label"><i className="fas fa-building"></i> Property Type:</span>
-                  <span className="info-value">{property.property_type || 'N/A'}</span>
-                </div>
-                {property.city && (
+                <dl>
                   <div className="info-row">
-                    <span className="info-label"><i className="fas fa-city"></i> City:</span>
-                    <span className="info-value">{property.city}</span>
+                    <dt className="info-label"><i className="fas fa-building" aria-hidden="true"></i> Property Type:</dt>
+                    <dd className="info-value" itemProp="propertyType">{property.property_type || 'N/A'}</dd>
                   </div>
-                )}
-                {property.state && (
-                  <div className="info-row">
-                    <span className="info-label"><i className="fas fa-map-marked-alt"></i> State:</span>
-                    <span className="info-value">{property.state}</span>
-                  </div>
-                )}
-                {property.zipcode && (
-                  <div className="info-row">
-                    <span className="info-label"><i className="fas fa-mail-bulk"></i> Zip Code:</span>
-                    <span className="info-value">{property.zipcode}</span>
-                  </div>
-                )}
-                {property.country && (
-                  <div className="info-row">
-                    <span className="info-label"><i className="fas fa-globe"></i> Country:</span>
-                    <span className="info-value">{property.country}</span>
-                  </div>
-                )}
+                  {property.city && (
+                    <div className="info-row">
+                      <dt className="info-label"><i className="fas fa-city" aria-hidden="true"></i> City:</dt>
+                      <dd className="info-value" itemProp="addressLocality">{property.city}</dd>
+                    </div>
+                  )}
+                  {property.state && (
+                    <div className="info-row">
+                      <dt className="info-label"><i className="fas fa-map-marked-alt" aria-hidden="true"></i> State:</dt>
+                      <dd className="info-value" itemProp="addressRegion">{property.state}</dd>
+                    </div>
+                  )}
+                  {property.zipcode && (
+                    <div className="info-row">
+                      <dt className="info-label"><i className="fas fa-mail-bulk" aria-hidden="true"></i> Zip Code:</dt>
+                      <dd className="info-value" itemProp="postalCode">{property.zipcode}</dd>
+                    </div>
+                  )}
+                  {property.country && (
+                    <div className="info-row">
+                      <dt className="info-label"><i className="fas fa-globe" aria-hidden="true"></i> Country:</dt>
+                      <dd className="info-value" itemProp="addressCountry">{property.country}</dd>
+                    </div>
+                  )}
+                </dl>
               </div>
             </div>
 
             <div className="contact-form-card" ref={contactFormRef}>
-              <h3>{settings?.contactFormHeading || 'Get More Details'}</h3>
+              <h2>{settings?.contactFormHeading || 'Get More Details'}</h2>
               <p className="form-subtitle">{settings?.contactFormSubtitle || 'Schedule a tour or request more information about this property.'}</p>
 
               {submitSuccess && (
