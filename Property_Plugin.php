@@ -914,6 +914,12 @@ function property_plugin_register_routes() {
  * Get all properties from WordPress
  */
 function property_plugin_get_properties($request) {
+    // Ensure the custom post type is registered
+    if (!post_type_exists('property')) {
+        property_plugin_register_post_type();
+        property_plugin_register_taxonomies();
+    }
+
     $args = array(
         'post_type' => 'property',
         'posts_per_page' => -1,
@@ -926,6 +932,143 @@ function property_plugin_get_properties($request) {
     $properties = array();
     
     foreach ($posts as $post) {
+        try {
+            // Get taxonomies
+            $property_types = wp_get_post_terms($post->ID, 'property-type', array('fields' => 'names'));
+            $locations = wp_get_post_terms($post->ID, 'property-location', array('fields' => 'names'));
+            $bedrooms = wp_get_post_terms($post->ID, 'bedrooms', array('fields' => 'names'));
+            $bathrooms = wp_get_post_terms($post->ID, 'bathrooms', array('fields' => 'names'));
+            $floors = wp_get_post_terms($post->ID, 'property-floor', array('fields' => 'names'));
+            
+            // Get custom taxonomies
+            $custom_taxonomies = get_option('property_plugin_custom_taxonomies', array());
+            $custom_taxonomy_data = array();
+            if (is_array($custom_taxonomies)) {
+                foreach ($custom_taxonomies as $tax) {
+                    if (isset($tax['slug']) && taxonomy_exists($tax['slug'])) {
+                        $terms = wp_get_post_terms($post->ID, $tax['slug'], array('fields' => 'names'));
+                        $custom_taxonomy_data[$tax['slug']] = !empty($terms) ? $terms[0] : 'N/A';
+                    }
+                }
+            }
+            
+            // Get meta data
+            $price = get_post_meta($post->ID, '_property_price', true);
+            $area = get_post_meta($post->ID, '_property_area', true);
+            $address = get_post_meta($post->ID, '_property_address', true);
+            $city = get_post_meta($post->ID, '_property_city', true);
+            $state = get_post_meta($post->ID, '_property_state', true);
+            $zipcode = get_post_meta($post->ID, '_property_zipcode', true);
+            $country = get_post_meta($post->ID, '_property_country', true);
+            $status = get_post_meta($post->ID, '_property_status', true);
+            $garage = get_post_meta($post->ID, '_property_garage', true);
+            
+            // Get gallery images
+            $gallery = array();
+            $gallery_ids_raw = get_post_meta($post->ID, '_property_gallery', true);
+            if (!empty($gallery_ids_raw)) {
+                $gallery_ids = array_filter(explode(',', $gallery_ids_raw));
+                foreach ($gallery_ids as $att_id) {
+                    $att_id = intval(trim($att_id));
+                    if ($att_id > 0) {
+                        $url = wp_get_attachment_image_url($att_id, 'large');
+                        if ($url) {
+                            $gallery[] = $url;
+                        }
+                    }
+                }
+            }
+            
+            // Get additional details safely
+            $additional_details_raw = get_post_meta($post->ID, '_property_additional_details', true);
+            $additional_details = array();
+            if (!empty($additional_details_raw)) {
+                if (is_string($additional_details_raw)) {
+                    $decoded = json_decode($additional_details_raw, true);
+                    $additional_details = is_array($decoded) ? $decoded : array();
+                } elseif (is_array($additional_details_raw)) {
+                    $additional_details = $additional_details_raw;
+                }
+            }
+            
+            // Get FAQs safely
+            $faqs_raw = get_post_meta($post->ID, '_property_faqs', true);
+            $faqs = array();
+            if (!empty($faqs_raw)) {
+                if (is_string($faqs_raw)) {
+                    $decoded = json_decode($faqs_raw, true);
+                    $faqs = is_array($decoded) ? $decoded : array();
+                } elseif (is_array($faqs_raw)) {
+                    $faqs = $faqs_raw;
+                }
+            }
+            
+            $property_data = array(
+                'id' => $post->ID,
+                'title' => $post->post_title,
+                'content' => $post->post_content,
+                'excerpt' => $post->post_excerpt,
+                'date' => $post->post_date,
+                'thumbnail' => get_the_post_thumbnail_url($post->ID, 'large') ?: '',
+                'price' => property_plugin_format_price($price),
+                'area' => $area ? $area . ' sq ft' : 'N/A',
+                'address' => $address ?: 'Address not available',
+                'city' => $city ?: '',
+                'state' => $state ?: '',
+                'zipcode' => $zipcode ?: '',
+                'country' => $country ?: '',
+                'status' => $status ?: 'for-sale',
+                'property_type' => !empty($property_types) ? $property_types[0] : 'Property',
+                'location' => !empty($locations) ? $locations[0] : 'Location',
+                'bedrooms' => !empty($bedrooms) ? $bedrooms[0] : 'N/A',
+                'bathrooms' => !empty($bathrooms) ? $bathrooms[0] : 'N/A',
+                'floor' => !empty($floors) ? $floors[0] : 'N/A',
+                'garage' => $garage ?: '',
+                'gallery' => $gallery,
+                // Per-property agent meta (optional)
+                'agent' => array(
+                    'name'  => get_post_meta($post->ID, '_property_agent_name', true) ?: '',
+                    'phone' => get_post_meta($post->ID, '_property_agent_phone', true) ?: '',
+                    'email' => get_post_meta($post->ID, '_property_agent_email', true) ?: '',
+                    'photo' => get_post_meta($post->ID, '_property_agent_photo', true) ?: '',
+                ),
+                // Repeatable additional details stored as JSON in post meta
+                'additional_details' => $additional_details,
+                // Repeatable FAQs stored as JSON in post meta
+                'faqs' => $faqs,
+            );
+            
+            // Add custom taxonomy data
+            $property_data = array_merge($property_data, $custom_taxonomy_data);
+            
+            $properties[] = $property_data;
+        } catch (Exception $e) {
+            error_log('[Property Plugin] Error processing property ' . $post->ID . ': ' . $e->getMessage());
+            continue;
+        }
+    }
+    
+    return rest_ensure_response($properties);
+}
+
+/**
+ * Get single property
+ */
+function property_plugin_get_property($request) {
+    // Ensure the custom post type is registered
+    if (!post_type_exists('property')) {
+        property_plugin_register_post_type();
+        property_plugin_register_taxonomies();
+    }
+
+    $id = $request['id'];
+    $post = get_post($id);
+    
+    if (!$post || $post->post_type !== 'property') {
+        return new WP_Error('not_found', 'Property not found', array('status' => 404));
+    }
+    
+    try {
         // Get taxonomies
         $property_types = wp_get_post_terms($post->ID, 'property-type', array('fields' => 'names'));
         $locations = wp_get_post_terms($post->ID, 'property-location', array('fields' => 'names'));
@@ -936,9 +1079,13 @@ function property_plugin_get_properties($request) {
         // Get custom taxonomies
         $custom_taxonomies = get_option('property_plugin_custom_taxonomies', array());
         $custom_taxonomy_data = array();
-        foreach ($custom_taxonomies as $tax) {
-            $terms = wp_get_post_terms($post->ID, $tax['slug'], array('fields' => 'names'));
-            $custom_taxonomy_data[$tax['slug']] = !empty($terms) ? $terms[0] : 'N/A';
+        if (is_array($custom_taxonomies)) {
+            foreach ($custom_taxonomies as $tax) {
+                if (isset($tax['slug']) && taxonomy_exists($tax['slug'])) {
+                    $terms = wp_get_post_terms($post->ID, $tax['slug'], array('fields' => 'names'));
+                    $custom_taxonomy_data[$tax['slug']] = !empty($terms) ? $terms[0] : 'N/A';
+                }
+            }
         }
         
         // Get meta data
@@ -951,12 +1098,44 @@ function property_plugin_get_properties($request) {
         $country = get_post_meta($post->ID, '_property_country', true);
         $status = get_post_meta($post->ID, '_property_status', true);
         $garage = get_post_meta($post->ID, '_property_garage', true);
-        $gallery_ids_raw = get_post_meta($post->ID, '_property_gallery', true);
+        
+        // Get gallery images
         $gallery = array();
+        $gallery_ids_raw = get_post_meta($post->ID, '_property_gallery', true);
         if (!empty($gallery_ids_raw)) {
-            foreach (array_filter(explode(',', $gallery_ids_raw)) as $att_id) {
-                $url = wp_get_attachment_image_url(intval($att_id), 'large');
-                if ($url) $gallery[] = $url;
+            $gallery_ids = array_filter(explode(',', $gallery_ids_raw));
+            foreach ($gallery_ids as $att_id) {
+                $att_id = intval(trim($att_id));
+                if ($att_id > 0) {
+                    $url = wp_get_attachment_image_url($att_id, 'large');
+                    if ($url) {
+                        $gallery[] = $url;
+                    }
+                }
+            }
+        }
+        
+        // Get additional details safely
+        $additional_details_raw = get_post_meta($post->ID, '_property_additional_details', true);
+        $additional_details = array();
+        if (!empty($additional_details_raw)) {
+            if (is_string($additional_details_raw)) {
+                $decoded = json_decode($additional_details_raw, true);
+                $additional_details = is_array($decoded) ? $decoded : array();
+            } elseif (is_array($additional_details_raw)) {
+                $additional_details = $additional_details_raw;
+            }
+        }
+        
+        // Get FAQs safely
+        $faqs_raw = get_post_meta($post->ID, '_property_faqs', true);
+        $faqs = array();
+        if (!empty($faqs_raw)) {
+            if (is_string($faqs_raw)) {
+                $decoded = json_decode($faqs_raw, true);
+                $faqs = is_array($decoded) ? $decoded : array();
+            } elseif (is_array($faqs_raw)) {
+                $faqs = $faqs_raw;
             }
         }
         
@@ -966,7 +1145,7 @@ function property_plugin_get_properties($request) {
             'content' => $post->post_content,
             'excerpt' => $post->post_excerpt,
             'date' => $post->post_date,
-            'thumbnail' => get_the_post_thumbnail_url($post->ID, 'large'),
+            'thumbnail' => get_the_post_thumbnail_url($post->ID, 'large') ?: '',
             'price' => property_plugin_format_price($price),
             'area' => $area ? $area . ' sq ft' : 'N/A',
             'address' => $address ?: 'Address not available',
@@ -990,104 +1169,19 @@ function property_plugin_get_properties($request) {
                 'photo' => get_post_meta($post->ID, '_property_agent_photo', true) ?: '',
             ),
             // Repeatable additional details stored as JSON in post meta
-            'additional_details' => json_decode(get_post_meta($post->ID, '_property_additional_details', true) ?: '[]', true),
+            'additional_details' => $additional_details,
             // Repeatable FAQs stored as JSON in post meta
-            'faqs' => json_decode(get_post_meta($post->ID, '_property_faqs', true) ?: '[]', true),
+            'faqs' => $faqs,
         );
         
         // Add custom taxonomy data
         $property_data = array_merge($property_data, $custom_taxonomy_data);
         
-        $properties[] = $property_data;
+        return rest_ensure_response($property_data);
+    } catch (Exception $e) {
+        error_log('[Property Plugin] Error getting property ' . $id . ': ' . $e->getMessage());
+        return new WP_Error('processing_error', 'Error processing property', array('status' => 500));
     }
-    
-    return rest_ensure_response($properties);
-}
-
-/**
- * Get single property
- */
-function property_plugin_get_property($request) {
-    $id = $request['id'];
-    $post = get_post($id);
-    
-    if (!$post || $post->post_type !== 'property') {
-        return new WP_Error('not_found', 'Property not found', array('status' => 404));
-    }
-    
-    // Get taxonomies
-    $property_types = wp_get_post_terms($post->ID, 'property-type', array('fields' => 'names'));
-    $locations = wp_get_post_terms($post->ID, 'property-location', array('fields' => 'names'));
-    $bedrooms = wp_get_post_terms($post->ID, 'bedrooms', array('fields' => 'names'));
-    $bathrooms = wp_get_post_terms($post->ID, 'bathrooms', array('fields' => 'names'));
-    $floors = wp_get_post_terms($post->ID, 'property-floor', array('fields' => 'names'));
-    
-    // Get custom taxonomies
-    $custom_taxonomies = get_option('property_plugin_custom_taxonomies', array());
-    $custom_taxonomy_data = array();
-    foreach ($custom_taxonomies as $tax) {
-        $terms = wp_get_post_terms($post->ID, $tax['slug'], array('fields' => 'names'));
-        $custom_taxonomy_data[$tax['slug']] = !empty($terms) ? $terms[0] : 'N/A';
-    }
-    
-    // Get meta data
-    $price = get_post_meta($post->ID, '_property_price', true);
-    $area = get_post_meta($post->ID, '_property_area', true);
-    $address = get_post_meta($post->ID, '_property_address', true);
-    $city = get_post_meta($post->ID, '_property_city', true);
-    $state = get_post_meta($post->ID, '_property_state', true);
-    $zipcode = get_post_meta($post->ID, '_property_zipcode', true);
-    $country = get_post_meta($post->ID, '_property_country', true);
-    $status = get_post_meta($post->ID, '_property_status', true);
-    $garage = get_post_meta($post->ID, '_property_garage', true);
-    $gallery_ids_raw = get_post_meta($post->ID, '_property_gallery', true);
-    $gallery = array();
-    if (!empty($gallery_ids_raw)) {
-        foreach (array_filter(explode(',', $gallery_ids_raw)) as $att_id) {
-            $url = wp_get_attachment_image_url(intval($att_id), 'large');
-            if ($url) $gallery[] = $url;
-        }
-    }
-    
-    $property_data = array(
-        'id' => $post->ID,
-        'title' => $post->post_title,
-        'content' => $post->post_content,
-        'excerpt' => $post->post_excerpt,
-        'date' => $post->post_date,
-        'thumbnail' => get_the_post_thumbnail_url($post->ID, 'large'),
-        'price' => property_plugin_format_price($price),
-        'area' => $area ? $area . ' sq ft' : 'N/A',
-        'address' => $address ?: 'Address not available',
-        'city' => $city ?: '',
-        'state' => $state ?: '',
-        'zipcode' => $zipcode ?: '',
-        'country' => $country ?: '',
-        'status' => $status ?: 'for-sale',
-        'property_type' => !empty($property_types) ? $property_types[0] : 'Property',
-        'location' => !empty($locations) ? $locations[0] : 'Location',
-        'bedrooms' => !empty($bedrooms) ? $bedrooms[0] : 'N/A',
-        'bathrooms' => !empty($bathrooms) ? $bathrooms[0] : 'N/A',
-        'floor' => !empty($floors) ? $floors[0] : 'N/A',
-        'garage' => $garage ?: '',
-        'gallery' => $gallery,
-        // Per-property agent meta (optional)
-        'agent' => array(
-            'name'  => get_post_meta($post->ID, '_property_agent_name', true) ?: '',
-            'phone' => get_post_meta($post->ID, '_property_agent_phone', true) ?: '',
-            'email' => get_post_meta($post->ID, '_property_agent_email', true) ?: '',
-            'photo' => get_post_meta($post->ID, '_property_agent_photo', true) ?: '',
-        ),
-        // Repeatable additional details stored as JSON in post meta
-        'additional_details' => json_decode(get_post_meta($post->ID, '_property_additional_details', true) ?: '[]', true),
-        // Repeatable FAQs stored as JSON in post meta
-        'faqs' => json_decode(get_post_meta($post->ID, '_property_faqs', true) ?: '[]', true),
-    );
-    
-    // Add custom taxonomy data
-    $property_data = array_merge($property_data, $custom_taxonomy_data);
-    
-    return rest_ensure_response($property_data);
 }
 
 /**
@@ -1399,10 +1493,17 @@ function property_plugin_install_default_data($force = false) {
     require_once ABSPATH . 'wp-admin/includes/file.php';
     require_once ABSPATH . 'wp-admin/includes/image.php';
 
-    foreach ($props as $p) {
+    error_log('[Property Plugin] Starting default data import with ' . count($props) . ' properties');
+
+    foreach ($props as $idx => $p) {
         // Skip if a property with the same title exists
         $existing = get_page_by_title($p['title'] ?? '', OBJECT, 'property');
-        if ($existing) continue;
+        if ($existing) {
+            error_log('[Property Plugin] Skipping property ' . ($idx + 1) . ' - already exists: ' . ($p['title'] ?? ''));
+            continue;
+        }
+
+        error_log('[Property Plugin] Importing property ' . ($idx + 1) . '/' . count($props) . ': ' . ($p['title'] ?? ''));
 
         $post_arr = array(
             'post_type'    => 'property',
@@ -1417,6 +1518,8 @@ function property_plugin_install_default_data($force = false) {
             error_log('[Property Plugin] Failed to create demo property: ' . $post_id->get_error_message());
             continue;
         }
+
+        error_log('[Property Plugin] Created post ID: ' . $post_id . ' for ' . ($p['title'] ?? ''));
 
         // Taxonomies
         if (!empty($p['property_type'])) wp_set_object_terms($post_id, array(sanitize_text_field($p['property_type'])), 'property-type');
@@ -1438,9 +1541,11 @@ function property_plugin_install_default_data($force = false) {
 
         // Featured image sideload
         if (!empty($p['thumbnail_url'])) {
+            error_log('[Property Plugin] Sideload thumbnail for post ' . $post_id . ': ' . $p['thumbnail_url']);
             $att_id = media_sideload_image($p['thumbnail_url'], $post_id, $p['title'] ?? 'Featured image', 'id');
             if (!is_wp_error($att_id)) {
                 set_post_thumbnail($post_id, $att_id);
+                error_log('[Property Plugin] Thumbnail sideloaded successfully, attachment ID: ' . $att_id);
             } else {
                 error_log('[Property Plugin] Failed to sideload thumbnail: ' . $att_id->get_error_message());
             }
@@ -1449,11 +1554,21 @@ function property_plugin_install_default_data($force = false) {
         // Gallery
         $gallery_ids = array();
         if (!empty($p['gallery_urls']) && is_array($p['gallery_urls'])) {
-            foreach ($p['gallery_urls'] as $gurl) {
+            error_log('[Property Plugin] Sideload ' . count($p['gallery_urls']) . ' gallery images for post ' . $post_id);
+            foreach ($p['gallery_urls'] as $gidx => $gurl) {
+                error_log('[Property Plugin] Gallery image ' . ($gidx + 1) . ': ' . $gurl);
                 $gatt = media_sideload_image($gurl, $post_id, 'Gallery image', 'id');
-                if (!is_wp_error($gatt)) $gallery_ids[] = $gatt;
+                if (!is_wp_error($gatt)) {
+                    $gallery_ids[] = $gatt;
+                    error_log('[Property Plugin] Gallery image ' . ($gidx + 1) . ' sideloaded, ID: ' . $gatt);
+                } else {
+                    error_log('[Property Plugin] Failed to sideload gallery image: ' . $gatt->get_error_message());
+                }
             }
-            if (!empty($gallery_ids)) update_post_meta($post_id, '_property_gallery', implode(',', $gallery_ids));
+            if (!empty($gallery_ids)) {
+                update_post_meta($post_id, '_property_gallery', implode(',', $gallery_ids));
+                error_log('[Property Plugin] Gallery saved with ' . count($gallery_ids) . ' images');
+            }
         }
 
         // Agent meta
@@ -1473,6 +1588,11 @@ function property_plugin_install_default_data($force = false) {
         // Additional details
         if (!empty($p['additional_details'])) {
             update_post_meta($post_id, '_property_additional_details', wp_json_encode($p['additional_details']));
+        }
+
+        // FAQs
+        if (!empty($p['faqs']) && is_array($p['faqs'])) {
+            update_post_meta($post_id, '_property_faqs', wp_json_encode($p['faqs']));
         }
 
         error_log('[Property Plugin] Imported demo property: ' . $post_id . ' - ' . ($p['title'] ?? ''));
