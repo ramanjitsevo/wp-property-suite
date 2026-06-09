@@ -489,6 +489,34 @@ function property_plugin_meta_box_callback($post) {
     </style>
 
     <script>
+    // Define renderGalleryPreview BEFORE jQuery ready so it's available globally
+    window.renderGalleryPreview = function() {
+        var ids = jQuery('#property_gallery_ids').val().split(',').filter(Boolean);
+        var $preview = jQuery('#property-gallery-preview').empty();
+
+        if (ids.length === 0) return;
+
+        // Use AJAX to fetch thumbnail URLs
+        jQuery.post(ajaxurl, {
+            action: 'pp_get_gallery_thumbs',
+            ids: ids.join(','),
+            nonce: '<?php echo wp_create_nonce('pp_gallery_nonce'); ?>'
+        }, function(response) {
+            if (!response.success) return;
+            response.data.forEach(function(item) {
+                $preview.append(
+                    '<div class="pp-gallery-thumb" data-id="' + item.id + '"' +
+                    ' style="position:relative; width:82px; height:82px; border:1px solid #ccd0d4; border-radius:4px; overflow:hidden;">' +
+                    '<img src="' + item.thumb + '" style="width:100%; height:100%; object-fit:cover; display:block;">' +
+                    '<button type="button" class="pp-remove-gallery-thumb" data-id="' + item.id + '"' +
+                    ' style="position:absolute; top:2px; right:2px; background:rgba(0,0,0,0.72); color:#fff; border:none;' +
+                    ' border-radius:50%; width:20px; height:20px; cursor:pointer; line-height:18px; font-size:15px; padding:0;">×</button>' +
+                    '</div>'
+                );
+            });
+        });
+    };
+
     jQuery(document).ready(function($) {
             // Tab switching
             $('.pp-tab-button').on('click', function() {
@@ -500,35 +528,10 @@ function property_plugin_meta_box_callback($post) {
             });
 
             // Ensure initial gallery preview is rendered if needed
-            renderGalleryPreview();
+            if (typeof renderGalleryPreview === 'function') {
+                renderGalleryPreview();
+            }
         var ppMediaFrame;
-
-        window.renderGalleryPreview = function() {
-            var ids = $('#property_gallery_ids').val().split(',').filter(Boolean);
-            var $preview = $('#property-gallery-preview').empty();
-
-            if (ids.length === 0) return;
-
-            // Use AJAX to fetch thumbnail URLs
-            $.post(ajaxurl, {
-                action: 'pp_get_gallery_thumbs',
-                ids: ids.join(','),
-                nonce: '<?php echo wp_create_nonce('pp_gallery_nonce'); ?>'
-            }, function(response) {
-                if (!response.success) return;
-                response.data.forEach(function(item) {
-                    $preview.append(
-                        '<div class="pp-gallery-thumb" data-id="' + item.id + '"' +
-                        ' style="position:relative; width:82px; height:82px; border:1px solid #ccd0d4; border-radius:4px; overflow:hidden;">' +
-                        '<img src="' + item.thumb + '" style="width:100%; height:100%; object-fit:cover; display:block;">' +
-                        '<button type="button" class="pp-remove-gallery-thumb" data-id="' + item.id + '"' +
-                        ' style="position:absolute; top:2px; right:2px; background:rgba(0,0,0,0.72); color:#fff; border:none;' +
-                        ' border-radius:50%; width:20px; height:20px; cursor:pointer; line-height:18px; font-size:15px; padding:0;">×</button>' +
-                        '</div>'
-                    );
-                });
-            });
-        }
 
         $('#pp-gallery-btn').on('click', function(e) {
             e.preventDefault();

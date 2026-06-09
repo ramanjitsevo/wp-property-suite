@@ -576,7 +576,7 @@ function PropertySingle({ property, onBack, settings }) {
                     { icon: 'fa-bed', label: 'Bedrooms', value: property.bedrooms || '0' },
                     { icon: 'fa-bath', label: 'Bathrooms', value: property.bathrooms || '0' },
                     { icon: 'fa-car', label: 'Garage', value: property.garage ? `${property.garage} car(s)` : 'No garage' },
-                    { icon: 'fa-vector-square', label: 'Area', value: property.area ? `${property.area} sq ft` : 'N/A' },
+                    { icon: 'fa-vector-square', label: 'Area', value: property.area ? `${property.area} ` : 'N/A' },
                     { icon: 'fa-building', label: 'Property Type', value: property.property_type || 'N/A' },
                     { icon: 'fa-layer-group', label: 'Floor', value: property.floor || 'N/A' },
                     { icon: 'fa-map-marker-alt', label: 'City', value: property.city || 'N/A' },
