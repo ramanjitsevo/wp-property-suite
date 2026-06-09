@@ -1572,7 +1572,7 @@ function property_plugin_install_default_data($force = false) {
     error_log('[Property Plugin] Default data import complete');
 }
 
-// Hook import on activation and on admin_init if not installed
+// Hook import on admin_init to ensure default data is installed (duplicate check is safe)
 add_action('admin_init', function() {
     if (!get_option('property_plugin_default_data_installed')) {
         property_plugin_install_default_data();
@@ -1590,8 +1590,8 @@ function property_plugin_activate() {
     // Create leads database table
     property_plugin_create_leads_table();
 
-    // Create demo property (only once, on first activation)
-    property_plugin_create_demo_property();
+    // Install default sample data (10 properties + all settings)
+    property_plugin_install_default_data();
 
     // Flush rewrite rules
     flush_rewrite_rules();
@@ -1604,15 +1604,10 @@ register_activation_hook(__FILE__, 'property_plugin_activate');
 // Also ensure leads table exists on every load (safe for already-activated sites)
 add_action('plugins_loaded', 'property_plugin_create_leads_table');
 
-// Create demo property for existing installs that have no properties yet
+// Install default data on admin_init if not installed (for existing installs)
 add_action('admin_init', function() {
-    if (get_option('property_plugin_demo_created')) {
-        return; // demo already handled
-    }
-    $count = wp_count_posts('property');
-    $total = ($count->publish ?? 0) + ($count->draft ?? 0);
-    if ($total === 0) {
-        property_plugin_create_demo_property();
+    if (!get_option('property_plugin_default_data_installed')) {
+        property_plugin_install_default_data();
     }
 });
 
@@ -1657,8 +1652,14 @@ function property_plugin_admin_notice() {
             <div style="flex:1;">
                 <h2 style="margin:0 0 8px; color:#1d2327;">Property Plugin is Ready! 🏠</h2>
                 <p style="margin:0 0 12px; font-size:14px; color:#3c434a;">
-                    Your property listing plugin has been activated. Here's how to get started:
+                    Your property listing plugin has been activated with <strong>10 sample properties</strong> and <strong>pre-configured settings</strong>. Here's how to get started:
                 </p>
+                <div style="background:#f0f6fc; border-left:4px solid #2271b1; padding:12px 15px; margin-bottom:12px;">
+                    <p style="margin:0 0 8px; font-weight:600; font-size:14px;">✓ Sample Data Installed</p>
+                    <p style="margin:0; font-size:13px;">
+                        10 demo properties with images, details, FAQs, and agent information have been added. All settings (banner, colors, text, CTA) are pre-filled and ready to use.
+                    </p>
+                </div>
                 <div style="background:#f0f6fc; border-left:4px solid #2271b1; padding:12px 15px; margin-bottom:12px;">
                     <p style="margin:0 0 8px; font-weight:600; font-size:14px;">Step 1: Add the shortcode to any page</p>
                     <p style="margin:0; font-size:13px;">
@@ -1666,9 +1667,9 @@ function property_plugin_admin_notice() {
                     </p>
                 </div>
                 <div style="background:#f0f6fc; border-left:4px solid #2271b1; padding:12px 15px; margin-bottom:12px;">
-                    <p style="margin:0 0 8px; font-weight:600; font-size:14px;">Step 2: Customize your settings</p>
+                    <p style="margin:0 0 8px; font-weight:600; font-size:14px;">Step 2: Customize your settings (Optional)</p>
                     <p style="margin:0; font-size:13px;">
-                        Go to <strong>Property Plugin Settings</strong> to change the banner image, colors, header text, card layout, and more.
+                        Go to <strong>Property Plugin Settings</strong> to change the banner image, colors, header text, card layout, and more. Everything is already set up with professional defaults!
                     </p>
                 </div>
                 <p style="margin:0;">

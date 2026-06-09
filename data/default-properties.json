@@ -3,7 +3,7 @@
     "title": "Modern Luxury Villa — Beverly Hills",
     "content": "This stunning modern villa offers the perfect blend of luxury, comfort, and contemporary design. Located in one of the most prestigious neighborhoods in Beverly Hills, this property features high-end finishes, spacious living areas, and breathtaking panoramic views.\n\nThe open-concept kitchen boasts premium stainless-steel appliances, a large island, and custom cabinetry. The master suite includes a walk-in closet, spa-like bathroom, and a private balcony overlooking the garden and pool.\n\nAdditional highlights include smart home automation, a home theatre, landscaped gardens, a swimming pool, and a 2-car garage.",
     "excerpt": "A stunning modern villa in Beverly Hills with pool, smart home features, and panoramic views.",
-    "price": "850000",
+    "price": "$8,50,000",
     "area": "2500",
     "address": "1234 Sunset Boulevard, Beverly Hills, CA",
     "city": "Beverly Hills",
@@ -33,13 +33,18 @@
       { "label": "Year Built", "value": "2018" },
       { "label": "Heating", "value": "Central" },
       { "label": "Parking", "value": "2 car garage" }
+    ],
+    "faqs": [
+      { "question": "What is the price of this property?", "answer": "The listed price is $8,50,000." },
+      { "question": "How many bedrooms does this villa have?", "answer": "This villa features 4 spacious bedrooms." },
+      { "question": "Is there a swimming pool?", "answer": "Yes, the property includes a beautiful swimming pool." }
     ]
   },
   {
     "title": "Cozy Downtown Apartment — New York",
     "content": "Stylish one-bedroom apartment located in the heart of downtown Manhattan. This cozy unit offers a bright living room, polished hardwood floors, an updated kitchen with stainless appliances, and a private balcony with city views. Perfect for young professionals or investors.\n\nBuilding amenities include a fitness center, concierge service, and secure access.",
     "excerpt": "Stylish 1BR apartment in downtown Manhattan with balcony and building amenities.",
-    "price": "420000",
+    "price": "$4,20,000",
     "area": "750",
     "address": "200 West 54th St, New York, NY",
     "city": "New York",
@@ -69,13 +74,17 @@
       { "label": "HOA Fee", "value": "$450/month" },
       { "label": "Flooring", "value": "Hardwood" },
       { "label": "Laundry", "value": "In-building" }
+    ],
+    "faqs": [
+      { "question": "What are the building amenities?", "answer": "The building includes a fitness center, concierge service, and secure access." },
+      { "question": "Is parking available?", "answer": "Street parking is available; no dedicated garage space." }
     ]
   },
   {
     "title": "Beachfront Bungalow — Malibu",
     "content": "Charming beachfront bungalow with direct access to the sand and ocean views. This 2-bedroom cottage features an open living area, coastal-inspired interiors, and a spacious deck for entertaining. Ideal as a vacation retreat or rental property.\n\nThe property is a short drive from local dining and shops and sits in a peaceful coastal community.",
     "excerpt": "Cozy 2BR beachfront bungalow in Malibu with ocean views and private deck.",
-    "price": "1250000",
+    "price": "$12,50,000",
     "area": "1200",
     "address": "88 Ocean Drive, Malibu, CA",
     "city": "Malibu",
@@ -105,6 +114,290 @@
       { "label": "Lot Size", "value": "0.12 acres" },
       { "label": "View", "value": "Ocean" },
       { "label": "Cooling", "value": "Ceiling Fans" }
+    ],
+    "faqs": [
+      { "question": "Is this property beachfront?", "answer": "Yes, the property has direct beach access." },
+      { "question": "What is the lot size?", "answer": "The lot size is 0.12 acres." }
+    ]
+  },
+  {
+    "title": "Spacious Family Home — Austin, Texas",
+    "content": "Beautiful family home in a quiet suburban neighborhood near top-rated schools. This property features 4 bedrooms, a large backyard, modern kitchen, and an open floor plan perfect for family gatherings.\n\nThe master suite includes a walk-in closet and en-suite bathroom. Additional features include a 2-car garage, covered patio, and energy-efficient appliances.",
+    "excerpt": "Spacious 4BR family home in Austin with large backyard and modern amenities.",
+    "price": "$5,75,000",
+    "area": "2200",
+    "address": "456 Oak Street, Austin, TX",
+    "city": "Austin",
+    "state": "Texas",
+    "zipcode": "78701",
+    "country": "United States",
+    "status": "for-sale",
+    "property_type": "House",
+    "location": "Austin",
+    "bedrooms": "4",
+    "bathrooms": "3",
+    "floor": "2",
+    "garage": "2",
+    "thumbnail_url": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&q=80",
+    "gallery_urls": [
+      "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&q=80",
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1200&q=80",
+      "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=1200&q=80"
+    ],
+    "agent": {
+      "name": "Marcus Johnson",
+      "phone": "+1 (512) 555-0178",
+      "email": "marcus.j@example.com",
+      "photo": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80"
+    },
+    "additional_details": [
+      { "label": "Year Built", "value": "2015" },
+      { "label": "Lot Size", "value": "0.25 acres" },
+      { "label": "Heating", "value": "Central" }
+    ],
+    "faqs": [
+      { "question": "Is the property near schools?", "answer": "Yes, located in a top-rated school district." },
+      { "question": "How large is the backyard?", "answer": "The property sits on 0.25 acres with a spacious backyard." }
+    ]
+  },
+  {
+    "title": "Luxury Penthouse — Miami Beach",
+    "content": "Spectacular penthouse with breathtaking ocean and city views. This ultra-modern unit features floor-to-ceiling windows, a gourmet kitchen, private rooftop terrace, and premium finishes throughout.\n\nBuilding amenities include 24/7 concierge, infinity pool, spa, fitness center, and valet parking. Walking distance to restaurants, shopping, and nightlife.",
+    "excerpt": "Ultra-modern penthouse in Miami Beach with rooftop terrace and ocean views.",
+    "price": "$25,00,000",
+    "area": "3200",
+    "address": "1500 Ocean Drive, Miami Beach, FL",
+    "city": "Miami Beach",
+    "state": "Florida",
+    "zipcode": "33139",
+    "country": "United States",
+    "status": "for-sale",
+    "property_type": "Penthouse",
+    "location": "Miami Beach",
+    "bedrooms": "3",
+    "bathrooms": "3",
+    "floor": "25",
+    "garage": "2",
+    "thumbnail_url": "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1200&q=80",
+    "gallery_urls": [
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&q=80",
+      "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&q=80",
+      "https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=1200&q=80"
+    ],
+    "agent": {
+      "name": "Isabella Rodriguez",
+      "phone": "+1 (305) 555-0145",
+      "email": "isabella.r@example.com",
+      "photo": "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&q=80"
+    },
+    "additional_details": [
+      { "label": "HOA Fee", "value": "$1,200/month" },
+      { "label": "View", "value": "Ocean & City" },
+      { "label": "Parking", "value": "Valet + 2 spaces" }
+    ],
+    "faqs": [
+      { "question": "What floor is the penthouse on?", "answer": "The penthouse is located on the 25th floor." },
+      { "question": "Are there building amenities?", "answer": "Yes, includes concierge, infinity pool, spa, fitness center, and valet parking." }
+    ]
+  },
+  {
+    "title": "Charming Cottage — Portland, Oregon",
+    "content": "Adorable craftsman-style cottage in a desirable Portland neighborhood. This 2-bedroom home features original hardwood floors, updated kitchen, cozy fireplace, and a beautiful garden.\n\nPerfect for first-time buyers or those looking to downsize. Close to parks, cafes, and public transportation.",
+    "excerpt": "Charming 2BR craftsman cottage in Portland with garden and original details.",
+    "price": "$3,85,000",
+    "area": "950",
+    "address": "789 Elm Avenue, Portland, OR",
+    "city": "Portland",
+    "state": "Oregon",
+    "zipcode": "97201",
+    "country": "United States",
+    "status": "for-sale",
+    "property_type": "Cottage",
+    "location": "Portland",
+    "bedrooms": "2",
+    "bathrooms": "1",
+    "floor": "1",
+    "garage": "1",
+    "thumbnail_url": "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=1200&q=80",
+    "gallery_urls": [
+      "https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?w=1200&q=80",
+      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1200&q=80",
+      "https://images.unsplash.com/photo-1501183638710-841dd1904471?w=1200&q=80"
+    ],
+    "agent": {
+      "name": "Emma Thompson",
+      "phone": "+1 (503) 555-0192",
+      "email": "emma.t@example.com",
+      "photo": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&q=80"
+    },
+    "additional_details": [
+      { "label": "Year Built", "value": "1925" },
+      { "label": "Heating", "value": "Forced Air" },
+      { "label": "Garden", "value": "Yes, landscaped" }
+    ],
+    "faqs": [
+      { "question": "Is the property renovated?", "answer": "The kitchen and bathroom have been updated while preserving original character." },
+      { "question": "Is there outdoor space?", "answer": "Yes, includes a beautiful landscaped garden." }
+    ]
+  },
+  {
+    "title": "Modern Townhouse — Seattle, Washington",
+    "content": "Contemporary 3-bedroom townhouse in the heart of Seattle. Features include an open-concept living area, rooftop deck with city views, attached garage, and high-end finishes throughout.\n\nWalking distance to tech campuses, restaurants, and public transit. Perfect for professionals or small families.",
+    "excerpt": "Modern 3BR townhouse in Seattle with rooftop deck and city views.",
+    "price": "$7,25,000",
+    "area": "1800",
+    "address": "321 Pine Street, Seattle, WA",
+    "city": "Seattle",
+    "state": "Washington",
+    "zipcode": "98101",
+    "country": "United States",
+    "status": "for-sale",
+    "property_type": "Townhouse",
+    "location": "Seattle",
+    "bedrooms": "3",
+    "bathrooms": "2",
+    "floor": "3",
+    "garage": "1",
+    "thumbnail_url": "https://images.unsplash.com/photo-1494526585095-c41746248156?w=1200&q=80",
+    "gallery_urls": [
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&q=80",
+      "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&q=80",
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1200&q=80"
+    ],
+    "agent": {
+      "name": "David Chen",
+      "phone": "+1 (206) 555-0134",
+      "email": "david.chen@example.com",
+      "photo": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80"
+    },
+    "additional_details": [
+      { "label": "Year Built", "value": "2020" },
+      { "label": "HOA Fee", "value": "$250/month" },
+      { "label": "Cooling", "value": "Central AC" }
+    ],
+    "faqs": [
+      { "question": "Is there a rooftop deck?", "answer": "Yes, the townhouse includes a rooftop deck with stunning city views." },
+      { "question": "How close is it to tech campuses?", "answer": "Within walking distance to major tech company offices." }
+    ]
+  },
+  {
+    "title": "Elegant Estate — Greenwich, Connecticut",
+    "content": "Magnificent colonial estate on sprawling grounds. This 6-bedroom luxury home features a grand foyer, formal dining room, chef's kitchen, library, home theater, and wine cellar.\n\nOutdoor amenities include a heated pool, tennis court, guest house, and meticulously landscaped gardens. Located in prestigious Greenwich with top-rated schools.",
+    "excerpt": "Grand 6BR colonial estate in Greenwich with pool, tennis court, and guest house.",
+    "price": "$45,00,000",
+    "area": "6500",
+    "address": "500 Estate Drive, Greenwich, CT",
+    "city": "Greenwich",
+    "state": "Connecticut",
+    "zipcode": "06830",
+    "country": "United States",
+    "status": "for-sale",
+    "property_type": "Estate",
+    "location": "Greenwich",
+    "bedrooms": "6",
+    "bathrooms": "5",
+    "floor": "3",
+    "garage": "3",
+    "thumbnail_url": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&q=80",
+    "gallery_urls": [
+      "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&q=80",
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1200&q=80",
+      "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=1200&q=80"
+    ],
+    "agent": {
+      "name": "Victoria Ashford",
+      "phone": "+1 (203) 555-0167",
+      "email": "victoria.a@example.com",
+      "photo": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80"
+    },
+    "additional_details": [
+      { "label": "Lot Size", "value": "2.5 acres" },
+      { "label": "Year Built", "value": "2010" },
+      { "label": "Special Features", "value": "Pool, Tennis Court, Guest House" }
+    ],
+    "faqs": [
+      { "question": "Does the property have a guest house?", "answer": "Yes, includes a separate guest house." },
+      { "question": "What outdoor amenities are included?", "answer": "Heated pool, tennis court, and landscaped gardens." }
+    ]
+  },
+  {
+    "title": "Urban Loft — Chicago, Illinois",
+    "content": "Stunning industrial-style loft in Chicago's trendy West Loop neighborhood. This open-concept space features exposed brick, 14-foot ceilings, polished concrete floors, and oversized windows with city views.\n\nBuilding includes rooftop deck, fitness center, and bike storage. Steps from acclaimed restaurants, galleries, and public transit.",
+    "excerpt": "Industrial-style loft in Chicago's West Loop with exposed brick and city views.",
+    "price": "$4,95,000",
+    "area": "1400",
+    "address": "678 Madison Street, Chicago, IL",
+    "city": "Chicago",
+    "state": "Illinois",
+    "zipcode": "60661",
+    "country": "United States",
+    "status": "for-rent",
+    "property_type": "Loft",
+    "location": "West Loop",
+    "bedrooms": "2",
+    "bathrooms": "2",
+    "floor": "5",
+    "garage": "1",
+    "thumbnail_url": "https://images.unsplash.com/photo-1505691723518-36a1fb9fa2d9?w=1200&q=80",
+    "gallery_urls": [
+      "https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?w=1200&q=80",
+      "https://images.unsplash.com/photo-1501183638710-841dd1904471?w=1200&q=80",
+      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1200&q=80"
+    ],
+    "agent": {
+      "name": "James O'Connor",
+      "phone": "+1 (312) 555-0188",
+      "email": "james.oc@example.com",
+      "photo": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80"
+    },
+    "additional_details": [
+      { "label": "Rent", "value": "$3,200/month" },
+      { "label": "Ceiling Height", "value": "14 feet" },
+      { "label": "Style", "value": "Industrial" }
+    ],
+    "faqs": [
+      { "question": "Is this property for sale or rent?", "answer": "This property is available for rent at $3,200/month." },
+      { "question": "What building amenities are included?", "answer": "Rooftop deck, fitness center, and bike storage." }
+    ]
+  },
+  {
+    "title": "Mountain Retreat — Aspen, Colorado",
+    "content": "Breathtaking mountain retreat with stunning views of the Rocky Mountains. This 4-bedroom luxury home features a stone fireplace, ski room, hot tub, and expansive decks for outdoor entertaining.\n\nLocated minutes from world-class skiing, hiking trails, and downtown Aspen. Perfect as a primary residence or vacation home.",
+    "excerpt": "Luxury 4BR mountain home in Aspen with ski room and mountain views.",
+    "price": "$38,00,000",
+    "area": "3800",
+    "address": "950 Mountain View Road, Aspen, CO",
+    "city": "Aspen",
+    "state": "Colorado",
+    "zipcode": "81611",
+    "country": "United States",
+    "status": "for-sale",
+    "property_type": "Chalet",
+    "location": "Aspen",
+    "bedrooms": "4",
+    "bathrooms": "4",
+    "floor": "2",
+    "garage": "2",
+    "thumbnail_url": "https://images.unsplash.com/photo-1501183638710-841dd1904471?w=1200&q=80",
+    "gallery_urls": [
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&q=80",
+      "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&q=80",
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1200&q=80"
+    ],
+    "agent": {
+      "name": "Sarah Mitchell",
+      "phone": "+1 (970) 555-0156",
+      "email": "sarah.m@example.com",
+      "photo": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&q=80"
+    },
+    "additional_details": [
+      { "label": "Lot Size", "value": "1.2 acres" },
+      { "label": "View", "value": "Mountain" },
+      { "label": "Heating", "value": "Radiant Floor + Fireplace" }
+    ],
+    "faqs": [
+      { "question": "How close is the property to ski resorts?", "answer": "Just minutes from world-class skiing." },
+      { "question": "Does it have outdoor features?", "answer": "Yes, includes hot tub and expansive decks with mountain views." }
     ]
   }
 ]
