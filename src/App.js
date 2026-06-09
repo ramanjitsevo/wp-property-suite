@@ -10,6 +10,7 @@ function App({ containerId }) {
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [showLeadForm, setShowLeadForm] = useState(false);
   const [leadProperty, setLeadProperty] = useState(null);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
 
   // Get settings from WordPress
   const settings = window.propertyPluginData?.settings || {};
@@ -33,6 +34,24 @@ function App({ containerId }) {
 
   // Check if user has already submitted the lead form
   const hasSubmittedLeadForm = localStorage.getItem('propertyLeadFormSubmitted') === 'true';
+
+  // Favorites helpers — must be defined before getFilteredProperties
+  const getFavoriteIds = () => {
+    try {
+      const raw = localStorage.getItem('property_favorites');
+      const ids = JSON.parse(raw || '[]');
+      return Array.isArray(ids) ? ids.map(Number) : [];
+    } catch {
+      return [];
+    }
+  };
+
+  const favoritesCount = getFavoriteIds().length;
+
+  const toggleFavoritesView = () => {
+    setShowFavoritesOnly(prev => !prev);
+    setCurrentPage(1);
+  };
 
   useEffect(() => {
     console.log('Property Plugin App loaded!');
@@ -197,6 +216,12 @@ function App({ containerId }) {
   const getFilteredProperties = () => {
     let filtered = [...properties];
 
+    if (showFavoritesOnly) {
+      const favIds = getFavoriteIds();
+      filtered = filtered.filter(p => favIds.includes(Number(p.id)));
+    }
+
+
     // Filter by status
     if (filters.status !== 'all') {
       filtered = filtered.filter(p => p.status === filters.status);
@@ -297,6 +322,7 @@ function App({ containerId }) {
     setCurrentPage(pageNumber);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
 
   if (loading) {
     return <div className="property-plugin-loading">Loading properties...</div>;
@@ -589,12 +615,27 @@ function App({ containerId }) {
             >
               <div className="properties-header">
                 <div>
-                  <p className="results-count">Showing {indexOfFirstPost + 1}-{Math.min(indexOfLastPost, filteredProperties.length)} of {filteredProperties.length} Properties</p>
+                  <p className="results-count">
+                    {showFavoritesOnly
+                      ? `Showing ${indexOfFirstPost + 1}-${Math.min(indexOfLastPost, filteredProperties.length)} of ${filteredProperties.length} Saved Properties`
+                      : `Showing ${indexOfFirstPost + 1}-${Math.min(indexOfLastPost, filteredProperties.length)} of ${filteredProperties.length} Properties`}
+                  </p>
                   <p style={{ fontSize: '12px', color: '#999', marginTop: '5px' }}>
                     Available Types: {uniquePropertyTypes.length > 0 ? uniquePropertyTypes.join(', ') : 'None found'}
                   </p>
                 </div>
                 <div className="sort-options">
+                  <button
+                    className={`btn-favorites-toggle ${showFavoritesOnly ? 'active' : ''}`}
+                    onClick={toggleFavoritesView}
+                    title={showFavoritesOnly ? 'Show all properties' : 'Show saved properties'}
+                  >
+                    <i className={`fa-heart ${showFavoritesOnly ? 'fas' : 'far'}`}></i>
+                    <span>Favorites</span>
+                    {favoritesCount > 0 && (
+                      <span className="favorites-badge">{favoritesCount}</span>
+                    )}
+                  </button>
                   <label>Sort By:</label>
                   <select
                     value={filters.sortBy}
@@ -603,7 +644,7 @@ function App({ containerId }) {
                     <option value="latest">Latest</option>
                     <option value="price-low">Price: Low to High</option>
                     <option value="price-high">Price: High to Low</option>
-                  </select>                 
+                  </select>
                 </div>
               </div>
 
@@ -611,10 +652,21 @@ function App({ containerId }) {
               <div className="properties-grid">
                 {currentPosts.length === 0 ? (
                   <div className="no-properties">
-                    <p>No properties found matching your filters. Try adjusting your search criteria.</p>
-                    <button className="btn-add-first" onClick={handleResetFilters}>
-                      Reset Filters
-                    </button>
+                    {showFavoritesOnly ? (
+                      <>
+                        <p>You haven't saved any properties yet. Click the ❤ icon on a property to save it.</p>
+                        <button className="btn-add-first" onClick={() => setShowFavoritesOnly(false)}>
+                          Show All Properties
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <p>No properties found matching your filters. Try adjusting your search criteria.</p>
+                        <button className="btn-add-first" onClick={handleResetFilters}>
+                          Reset Filters
+                        </button>
+                      </>
+                    )}
                   </div>
                 ) : (
                   currentPosts.map((property) => {
