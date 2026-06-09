@@ -443,9 +443,7 @@ function App({ containerId }) {
             </div>
             <button className="btn-search" onClick={handleSearch}>Search Properties</button>
           </div>
-          <div className="search-advanced">
-            <button className="btn-advanced">Advanced ▼</button>
-          </div>
+          
         </div>
       </section>
 
@@ -610,7 +608,7 @@ function App({ containerId }) {
               </div>
 
               {/* Properties Grid */}
-              <div className={`properties-grid ${settings.cardLayout === 'list' ? 'list-layout' : ''}`}>
+              <div className="properties-grid">
                 {currentPosts.length === 0 ? (
                   <div className="no-properties">
                     <p>No properties found matching your filters. Try adjusting your search criteria.</p>

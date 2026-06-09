@@ -71,7 +71,6 @@ function property_plugin_register_settings() {
     register_setting('property_plugin_colors', 'property_plugin_font_size', array('sanitize_callback' => 'absint'));
     
     // Card Settings
-    register_setting('property_plugin_card', 'property_plugin_card_layout', array('sanitize_callback' => 'sanitize_text_field'));
     register_setting('property_plugin_card', 'property_plugin_show_badge', array('sanitize_callback' => 'sanitize_text_field'));
     register_setting('property_plugin_card', 'property_plugin_show_area', array('sanitize_callback' => 'sanitize_text_field'));
     register_setting('property_plugin_card', 'property_plugin_show_address', array('sanitize_callback' => 'sanitize_text_field'));
@@ -495,19 +494,6 @@ function property_plugin_settings_page() {
                         <p class="section-description"><?php _e('Configure how property cards are displayed', 'property-plugin'); ?></p>
                         
                         <table class="form-table">
-                            <tr>
-                                <th scope="row">
-                                    <label for="card_layout"><?php _e('Card Layout', 'property-plugin'); ?></label>
-                                </th>
-                                <td>
-                                    <select id="card_layout" name="property_plugin_card_layout">
-                                        <option value="grid" <?php selected(get_option('property_plugin_card_layout', 'grid'), 'grid'); ?>><?php _e('Grid Layout', 'property-plugin'); ?></option>
-                                        <option value="list" <?php selected(get_option('property_plugin_card_layout', 'grid'), 'list'); ?>><?php _e('List Layout', 'property-plugin'); ?></option>
-                                    </select>
-                                    <p class="description"><?php _e('Choose how properties are displayed', 'property-plugin'); ?></p>
-                                </td>
-                            </tr>
-                            
                             <tr>
                                 <th scope="row"><?php _e('Display Options', 'property-plugin'); ?></th>
                                 <td>
@@ -1887,7 +1873,6 @@ function property_plugin_shortcode_guide_page() {
                     <div class="ppg-card-icon"><span class="dashicons dashicons-layout"></span></div>
                     <h3><?php _e('Property Card', 'property-plugin'); ?></h3>
                     <ul>
-                        <li><?php _e('Switch between <strong>Grid</strong> or <strong>List</strong> layout', 'property-plugin'); ?></li>
                         <li><?php _e('Show / hide status badge (For Sale, For Rent, etc.)', 'property-plugin'); ?></li>
                         <li><?php _e('Show / hide property area', 'property-plugin'); ?></li>
                         <li><?php _e('Show / hide full address', 'property-plugin'); ?></li>

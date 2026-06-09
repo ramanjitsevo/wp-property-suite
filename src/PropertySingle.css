@@ -855,6 +855,23 @@
     flex: 1;
     min-width: 150px;
   }
+
+  .property-sidebar {
+    position: static;
+  }
+
+  .gallery-main {
+    height: 400px;
+  }
+
+  .property-tabs {
+    overflow-x: auto;
+  }
+
+  .property-tab {
+    white-space: nowrap;
+    padding: 10px 15px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -865,7 +882,7 @@
   }
 
   .gallery-main {
-    height: 350px;
+    height: 300px;
   }
 
   .gallery-thumb {
@@ -882,11 +899,11 @@
   }
 
   .property-quick-stats {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .overview-highlights {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .bottom-actions {
@@ -897,5 +914,208 @@
   .btn-schedule,
   .btn-request-info {
     width: 100%;
+  }
+
+  .property-tabs {
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .property-tab {
+    flex: 1 1 auto;
+    min-width: 100px;
+    font-size: 14px;
+    padding: 10px 12px;
+  }
+
+  .tab-content {
+    padding: 15px;
+  }
+
+  .overview-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .property-highlights {
+    grid-template-columns: 1fr;
+  }
+
+  .description-content {
+    font-size: 15px;
+  }
+
+  .agent-photo {
+    width: 60px;
+    height: 60px;
+  }
+
+  .agent-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .additional-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .faq-item {
+    padding: 15px;
+  }
+
+  .faq-question {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .property-breadcrumb .property-plugin-container,
+  .property-single-layout {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+
+  .property-breadcrumb {
+    padding: 10px 15px;
+  }
+
+  .gallery-main {
+    height: 250px;
+  }
+
+  .gallery-thumbnails {
+    display: none;
+  }
+
+  .gallery-nav {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+
+  .property-title {
+    font-size: 20px;
+    line-height: 1.3;
+  }
+
+  .price {
+    font-size: 20px;
+  }
+
+  .property-quick-stats {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .stat-item {
+    padding: 10px;
+  }
+
+  .stat-icon {
+    font-size: 20px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+  }
+
+  .stat-value {
+    font-size: 14px;
+  }
+
+  .overview-highlights {
+    grid-template-columns: 1fr;
+  }
+
+  .overview-highlights .highlight-item {
+    padding: 12px;
+  }
+
+  .property-tabs {
+    gap: 0;
+  }
+
+  .property-tab {
+    flex: 1 1 50%;
+    font-size: 13px;
+    padding: 8px 10px;
+  }
+
+  .tab-content {
+    padding: 12px;
+  }
+
+  .tab-title {
+    font-size: 20px;
+  }
+
+  .description-content {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .agent-card {
+    padding: 15px;
+  }
+
+  .agent-details {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .agent-photo {
+    width: 80px;
+    height: 80px;
+  }
+
+  .agent-name {
+    font-size: 18px;
+  }
+
+  .agent-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .btn-call,
+  .btn-schedule,
+  .btn-request-info {
+    width: 100%;
+    padding: 12px;
+    font-size: 14px;
+  }
+
+  .additional-detail-item {
+    padding: 12px;
+  }
+
+  .detail-label,
+  .detail-value {
+    font-size: 14px;
+  }
+
+  .faq-item {
+    padding: 12px;
+  }
+
+  .faq-question {
+    font-size: 14px;
+  }
+
+  .faq-answer {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .property-address {
+    font-size: 14px;
+  }
+
+  .location-details {
+    padding: 15px;
+  }
+
+  .map-container {
+    height: 250px;
   }
 }

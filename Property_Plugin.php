@@ -486,6 +486,74 @@ function property_plugin_meta_box_callback($post) {
     <style>
     .pp-tab-list .pp-tab-button.active { background:#f0f6fc; color:#2271b1; font-weight:600; border-left:3px solid #2271b1; }
     .pp-tab-list .pp-tab-button { border-left:3px solid transparent; }
+    
+    /* Responsive Admin Meta Box */
+    @media (max-width: 782px) {
+      .pp-tabs {
+        flex-direction: column !important;
+        gap: 10px !important;
+      }
+      
+      .pp-tab-list {
+        width: 100% !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 5px !important;
+        padding: 10px !important;
+      }
+      
+      .pp-tab-button {
+        flex: 1 1 auto !important;
+        min-width: 100px !important;
+        padding: 8px 12px !important;
+        font-size: 13px !important;
+        text-align: center !important;
+        border: 1px solid #ccd0d4 !important;
+        border-radius: 4px !important;
+        border-left: none !important;
+      }
+      
+      .pp-tab-list .pp-tab-button.active {
+        border-left: none !important;
+        border-bottom: 3px solid #2271b1 !important;
+      }
+      
+      .pp-tab-content {
+        padding: 12px !important;
+      }
+      
+      .additional-detail-row {
+        flex-direction: column !important;
+        gap: 5px !important;
+      }
+      
+      .additional-detail-row input {
+        width: 100% !important;
+      }
+      
+      .property-faq-row {
+        padding: 10px !important;
+      }
+      
+      .property-faq-row input,
+      .property-faq-row textarea {
+        font-size: 14px !important;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .pp-tab-button {
+        min-width: 80px !important;
+        font-size: 12px !important;
+        padding: 6px 8px !important;
+      }
+      
+      .pp-tab-content input,
+      .pp-tab-content textarea,
+      .pp-tab-content select {
+        font-size: 14px !important;
+      }
+    }
     </style>
 
     <script>
@@ -841,9 +909,22 @@ function property_plugin_custom_styles() {
         .property-plugin-container .properties-sidebar,
         aside.properties-sidebar {
             display: block !important;
-            width: 280px !important;
+            width: 300px !important;
             visibility: visible !important;
             opacity: 1 !important;
+        }
+
+        @media(max-width: 768px){
+            .property-plugin-app .properties-sidebar,
+            .property-plugin-app aside.properties-sidebar,
+            .property-plugin-container .properties-sidebar,
+            aside.properties-sidebar {
+            display: block !important;
+            width: 100% !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
         }
     </style>
     <?php
@@ -1264,6 +1345,11 @@ function property_plugin_shortcode($atts) {
     // Unique ID for the container
     $container_id = 'property-plugin-root-' . uniqid();
     
+    // Add viewport meta tag for responsive design (only if not already present)
+    if (!has_action('wp_head', 'property_plugin_viewport_meta')) {
+        add_action('wp_head', 'property_plugin_viewport_meta');
+    }
+    
     ob_start();
     ?>
     <div id="<?php echo esc_attr($container_id); ?>" class="property-plugin-container" data-container-id="<?php echo esc_attr($container_id); ?>"></div>
@@ -1334,7 +1420,6 @@ function property_plugin_enqueue_assets() {
                         'fontFamily' => get_option('property_plugin_font_family', 'Arial, sans-serif'),
                         'fontSize' => get_option('property_plugin_font_size', '16'),
                         'propertiesPerPage' => get_option('property_plugin_properties_per_page', '12'),
-                        'cardLayout' => get_option('property_plugin_card_layout', 'grid'),
                         'showBadge' => get_option('property_plugin_show_badge', '1'),
                         'showArea' => get_option('property_plugin_show_area', '1'),
                         'showAddress' => get_option('property_plugin_show_address', '1'),
@@ -1699,7 +1784,6 @@ function property_plugin_install_default_data($force = false) {
                 'fontFamily' => 'property_plugin_font_family',
                 'fontSize' => 'property_plugin_font_size',
                 'propertiesPerPage' => 'property_plugin_properties_per_page',
-                'cardLayout' => 'property_plugin_card_layout',
                 'showBadge' => 'property_plugin_show_badge',
                 'showArea' => 'property_plugin_show_area',
                 'showAddress' => 'property_plugin_show_address',
@@ -1748,6 +1832,13 @@ add_action('admin_init', function() {
         property_plugin_install_default_data();
     }
 });
+
+/**
+ * Viewport meta tag for responsive design
+ */
+function property_plugin_viewport_meta() {
+    echo '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">' . "\n";
+}
 
 /**
  * Activation hook
@@ -1973,30 +2064,226 @@ function property_plugin_submit_lead($request) {
     $lead_id = $wpdb->insert_id;
     error_log('[Property Plugin Lead] SUCCESS: Lead #' . $lead_id . ' saved for ' . $email);
 
-    // --- Send notification email via wp_mail() (routed through WP Mail SMTP / Mailtrap) ---
+    // --- Send notification email with professional HTML template ---
     $to = get_option('property_plugin_contact_email', get_option('admin_email'));
-
-    $subject = sprintf('[New Lead] %s — %s', $name, $property_title ?: 'Property Inquiry');
-
-    $body  = "A new lead has been submitted on your property website.\n\n";
-    $body .= "--- Lead Details ---\n";
-    $body .= "Name:     $name\n";
-    $body .= "Email:    $email\n";
-    $body .= "Phone:    $phone\n";
-    $body .= "Message:  $message\n\n";
-    $body .= "--- Property ---\n";
-    $body .= "Property ID:    $property_id\n";
-    $body .= "Property Title: $property_title\n\n";
-    $body .= "--- Meta ---\n";
-    $body .= "Submitted at: " . current_time('mysql') . "\n";
-    $body .= "Lead ID:      $lead_id\n";
+    $site_name = get_bloginfo('name');
+    $site_url = get_bloginfo('url');
+    $current_time = current_time('mysql');
+    
+    // Build HTML email template
+    $html_body = '
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            /* Reset styles */
+            body { margin: 0; padding: 0; width: 100% !important; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+            table { border-collapse: collapse; }
+            img { border: 0; outline: none; text-decoration: none; }
+            
+            /* Responsive */
+            @media only screen and (max-width: 600px) {
+                .container { width: 100% !important; }
+                .content-padding { padding: 20px !important; }
+                .stat-box { width: 100% !important; display: block !important; margin-bottom: 10px !important; }
+            }
+        </style>
+    </head>
+    <body style="margin: 0; padding: 0; background: #f4f4f4; font-family: Arial, Helvetica, sans-serif;">
+        
+        <!-- Outer wrapper -->
+        <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background: #f4f4f4; padding: 30px 0;">
+            <tr>
+                <td align="center">
+                    
+                    <!-- Main container -->
+                    <table role="presentation" class="container" width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        
+                        <!-- Header with gradient -->
+                        <tr>
+                            <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center;">
+                                <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
+                                    <tr>
+                                        <td style="text-align: center;">
+                                            <div style="font-size: 48px; margin-bottom: 10px;">🏠</div>
+                                            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold; line-height: 1.3;">New Lead Received!</h1>
+                                            <p style="margin: 10px 0 0 0; color: #ffffff; font-size: 16px; opacity: 0.9;">' . esc_html($site_name) . '</p>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        
+                        <!-- Lead Details Section -->
+                        <tr>
+                            <td class="content-padding" style="padding: 40px 30px;">
+                                <h2 style="margin: 0 0 20px 0; color: #333333; font-size: 22px; font-weight: bold;">📋 Lead Information</h2>
+                                
+                                <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background: #f8f9fa; border-radius: 8px; padding: 20px;">
+                                    <tr>
+                                        <td style="padding: 15px 20px;">
+                                            <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
+                                                <tr>
+                                                    <td style="padding: 10px 0; border-bottom: 1px solid #e0e0e0;">
+                                                        <strong style="color: #666666; font-size: 13px; text-transform: uppercase; display: block; margin-bottom: 5px;">Full Name</strong>
+                                                        <span style="color: #333333; font-size: 18px; font-weight: bold;">' . esc_html($name) . '</span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="padding: 10px 0; border-bottom: 1px solid #e0e0e0;">
+                                                        <strong style="color: #666666; font-size: 13px; text-transform: uppercase; display: block; margin-bottom: 5px;">Email Address</strong>
+                                                        <a href="mailto:' . esc_attr($email) . '" style="color: #667eea; font-size: 16px; text-decoration: none;">' . esc_html($email) . '</a>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="padding: 10px 0; border-bottom: 1px solid #e0e0e0;">
+                                                        <strong style="color: #666666; font-size: 13px; text-transform: uppercase; display: block; margin-bottom: 5px;">Phone Number</strong>
+                                                        <a href="tel:' . esc_attr($phone) . '" style="color: #333333; font-size: 16px; text-decoration: none;">' . esc_html($phone ?: "Not provided") . '</a>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="padding: 10px 0;">
+                                                        <strong style="color: #666666; font-size: 13px; text-transform: uppercase; display: block; margin-bottom: 5px;">Message</strong>
+                                                        <p style="color: #333333; font-size: 15px; line-height: 1.6; margin: 0; background: #ffffff; padding: 15px; border-radius: 6px; border-left: 4px solid #667eea;">' . nl2br(esc_html($message)) . '</p>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        
+                        <!-- Property Details Section -->
+                        <tr>
+                            <td class="content-padding" style="padding: 0 30px 40px 30px;">
+                                <h2 style="margin: 0 0 20px 0; color: #333333; font-size: 22px; font-weight: bold;">🏡 Property Details</h2>
+                                
+                                <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background: #f0f6ff; border-radius: 8px; border: 2px solid #667eea;">
+                                    <tr>
+                                        <td style="padding: 20px;">
+                                            <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
+                                                <tr>
+                                                    <td style="padding: 8px 0;">
+                                                        <strong style="color: #666666; font-size: 13px; text-transform: uppercase;">Property Title</strong><br>
+                                                        <span style="color: #333333; font-size: 17px; font-weight: bold;">' . esc_html($property_title ?: "N/A") . '</span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="padding: 8px 0; border-top: 1px solid #d0e3ff;">
+                                                        <strong style="color: #666666; font-size: 13px; text-transform: uppercase;">Property ID</strong><br>
+                                                        <span style="color: #333333; font-size: 16px;">#' . intval($property_id) . '</span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="padding: 8px 0; border-top: 1px solid #d0e3ff;">
+                                                        <strong style="color: #666666; font-size: 13px; text-transform: uppercase;">View Property</strong><br>
+                                                        <a href="' . esc_url($site_url . '/?property=' . $property_id) . '" style="color: #667eea; font-size: 15px; font-weight: bold; text-decoration: none;">Click here to view →</a>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        
+                        <!-- Stats boxes -->
+                        <tr>
+                            <td style="padding: 0 30px 40px 30px;">
+                                <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
+                                    <tr>
+                                        <td class="stat-box" width="50%" style="padding: 0 10px 10px 0;">
+                                            <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; padding: 20px;">
+                                                <tr>
+                                                    <td style="text-align: center; color: #ffffff;">
+                                                        <div style="font-size: 32px; margin-bottom: 8px;">🆔</div>
+                                                        <div style="font-size: 12px; text-transform: uppercase; opacity: 0.9; margin-bottom: 5px;">Lead ID</div>
+                                                        <div style="font-size: 24px; font-weight: bold;">' . intval($lead_id) . '</div>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                        <td class="stat-box" width="50%" style="padding: 0 0 10px 10px;">
+                                            <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 8px; padding: 20px;">
+                                                <tr>
+                                                    <td style="text-align: center; color: #ffffff;">
+                                                        <div style="font-size: 32px; margin-bottom: 8px;">📅</div>
+                                                        <div style="font-size: 12px; text-transform: uppercase; opacity: 0.9; margin-bottom: 5px;">Submitted</div>
+                                                        <div style="font-size: 16px; font-weight: bold;">' . date('M d, Y', strtotime($current_time)) . '</div>
+                                                        <div style="font-size: 13px; opacity: 0.9;">' . date('h:i A', strtotime($current_time)) . '</div>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        
+                        <!-- Action buttons -->
+                        <tr>
+                            <td style="padding: 0 30px 40px 30px;">
+                                <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
+                                    <tr>
+                                        <td style="text-align: center;">
+                                            <a href="mailto:' . esc_attr($email) . '?subject=Re: ' . urlencode($property_title ?: 'Property Inquiry') . '" style="display: inline-block; background: #667eea; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: bold; font-size: 15px; margin: 5px;">📧 Reply to Lead</a>
+                                            <a href="tel:' . esc_attr($phone) . '" style="display: inline-block; background: #28a745; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: bold; font-size: 15px; margin: 5px;">📞 Call Now</a>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        
+                        <!-- Footer -->
+                        <tr>
+                            <td style="background: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #e0e0e0;">
+                                <p style="margin: 0 0 10px 0; color: #666666; font-size: 14px;"><strong>' . esc_html($site_name) . '</strong></p>
+                                <p style="margin: 0 0 15px 0; color: #999999; font-size: 13px; line-height: 1.5;">This is an automated notification from your Property Plugin.<br>Please respond to leads promptly for best results.</p>
+                                <p style="margin: 0; font-size: 12px; color: #999999;">
+                                    <a href="' . esc_url($site_url) . '" style="color: #667eea; text-decoration: none;">Visit Website</a> • 
+                                    <a href="' . esc_url($site_url . '/wp-admin') . '" style="color: #667eea; text-decoration: none;">Admin Dashboard</a>
+                                </p>
+                                <p style="margin: 15px 0 0 0; font-size: 11px; color: #bbbbbb;">© ' . date('Y') . ' ' . esc_html($site_name) . '. All rights reserved.</p>
+                            </td>
+                        </tr>
+                        
+                    </table>
+                    <!-- End main container -->
+                    
+                </td>
+            </tr>
+        </table>
+        <!-- End outer wrapper -->
+        
+    </body>
+    </html>';
+    
+    // Plain text fallback
+    $plain_body  = "NEW LEAD RECEIVED!\n\n";
+    $plain_body .= "--- Lead Information ---\n";
+    $plain_body .= "Name:     $name\n";
+    $plain_body .= "Email:    $email\n";
+    $plain_body .= "Phone:    $phone\n";
+    $plain_body .= "Message:  $message\n\n";
+    $plain_body .= "--- Property Details ---\n";
+    $plain_body .= "Property ID:    $property_id\n";
+    $plain_body .= "Property Title: $property_title\n\n";
+    $plain_body .= "--- Meta Information ---\n";
+    $plain_body .= "Lead ID:      #$lead_id\n";
+    $plain_body .= "Submitted at: $current_time\n";
+    $plain_body .= "Website:      $site_name ($site_url)\n";
 
     $headers = array(
-        'Content-Type: text/plain; charset=UTF-8',
+        'Content-Type: text/html; charset=UTF-8',
         'Reply-To: ' . $name . ' <' . $email . '>',
+        'X-Mailer: Property Plugin WordPress',
     );
 
-    $mail_sent = wp_mail($to, $subject, $body, $headers);
+    // Send with HTML, WordPress will auto-generate plain text fallback
+    $mail_sent = wp_mail($to, $subject, $html_body, $headers);
 
     if ($mail_sent) {
         error_log('[Property Plugin Lead] Email sent successfully to ' . $to . ' (Lead #' . $lead_id . ')');
