@@ -46,8 +46,7 @@
 .hero-section {
   position: relative;
   height: 500px;
-  background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
-              url('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1600') center/cover;
+  background: linear-gradient(135deg, #1f2937, #2563eb);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -738,6 +737,16 @@
   width: 100%;
   border-radius: 10px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.cta-image-placeholder {
+  width: 100%;
+  min-height: 280px;
+  border-radius: 10px;
+  background:
+    linear-gradient(135deg, rgba(37, 99, 235, 0.18), rgba(16, 185, 129, 0.18)),
+    linear-gradient(135deg, #f8fafc, #e2e8f0);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
 }
 
 .cta-content {

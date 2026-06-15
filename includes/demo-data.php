@@ -11,7 +11,7 @@ function wps_create_demo_property() {
     wps_install_default_data();
 
     update_option('wps_demo_created', 'sample-data-json');
-    error_log('[WP Property Suite Demo] Demo sample data imported from default-properties.json');
+    wps_debug_log('[WP Property Suite Demo] Demo sample data imported from default-properties.json');
 }
 
 
@@ -30,7 +30,7 @@ function wps_install_default_data($force = false) {
     $settings_file = $data_dir . 'default-settings.json';
 
     if (!file_exists($props_file)) {
-        error_log('[WP Property Suite] default properties JSON not found: ' . $props_file);
+        wps_debug_log('[WP Property Suite] default properties JSON not found: ' . $props_file);
         return;
     }
 
@@ -38,7 +38,7 @@ function wps_install_default_data($force = false) {
     $props_json = file_get_contents($props_file);
     $props = json_decode($props_json, true);
     if (!is_array($props)) {
-        error_log('[WP Property Suite] Invalid default properties JSON');
+        wps_debug_log('[WP Property Suite] Invalid default properties JSON');
         return;
     }
 
@@ -47,17 +47,17 @@ function wps_install_default_data($force = false) {
     require_once ABSPATH . 'wp-admin/includes/file.php';
     require_once ABSPATH . 'wp-admin/includes/image.php';
 
-    error_log('[WP Property Suite] Starting default data import with ' . count($props) . ' properties');
+    wps_debug_log('[WP Property Suite] Starting default data import with ' . count($props) . ' properties');
 
     foreach ($props as $idx => $p) {
         // Skip if a property with the same title exists
         $existing = get_page_by_title($p['title'] ?? '', OBJECT, 'property');
         if ($existing) {
-            error_log('[WP Property Suite] Skipping property ' . ($idx + 1) . ' - already exists: ' . ($p['title'] ?? ''));
+            wps_debug_log('[WP Property Suite] Skipping property ' . ($idx + 1) . ' - already exists: ' . ($p['title'] ?? ''));
             continue;
         }
 
-        error_log('[WP Property Suite] Importing property ' . ($idx + 1) . '/' . count($props) . ': ' . ($p['title'] ?? ''));
+        wps_debug_log('[WP Property Suite] Importing property ' . ($idx + 1) . '/' . count($props) . ': ' . ($p['title'] ?? ''));
 
         $post_arr = array(
             'post_type'    => 'property',
@@ -69,11 +69,11 @@ function wps_install_default_data($force = false) {
 
         $post_id = wp_insert_post($post_arr, true);
         if (is_wp_error($post_id)) {
-            error_log('[WP Property Suite] Failed to create demo property: ' . $post_id->get_error_message());
+            wps_debug_log('[WP Property Suite] Failed to create demo property: ' . $post_id->get_error_message());
             continue;
         }
 
-        error_log('[WP Property Suite] Created post ID: ' . $post_id . ' for ' . ($p['title'] ?? ''));
+        wps_debug_log('[WP Property Suite] Created post ID: ' . $post_id . ' for ' . ($p['title'] ?? ''));
 
         // Taxonomies
         if (!empty($p['property_type'])) wp_set_object_terms($post_id, array(sanitize_text_field($p['property_type'])), 'property-type');
@@ -96,14 +96,14 @@ function wps_install_default_data($force = false) {
             // Always save the original URL as fallback
             update_post_meta($post_id, '_property_thumbnail_url', esc_url_raw($p['thumbnail_url']));
             
-            error_log('[WP Property Suite] Sideload thumbnail for post ' . $post_id . ': ' . $p['thumbnail_url']);
+            wps_debug_log('[WP Property Suite] Sideload thumbnail for post ' . $post_id . ': ' . $p['thumbnail_url']);
             $att_id = media_sideload_image($p['thumbnail_url'], $post_id, $p['title'] ?? 'Featured image', 'id');
             if (!is_wp_error($att_id)) {
                 set_post_thumbnail($post_id, $att_id);
-                error_log('[WP Property Suite] Thumbnail sideloaded successfully, attachment ID: ' . $att_id);
+                wps_debug_log('[WP Property Suite] Thumbnail sideloaded successfully, attachment ID: ' . $att_id);
             } else {
-                error_log('[WP Property Suite] Failed to sideload thumbnail: ' . $att_id->get_error_message());
-                error_log('[WP Property Suite] Using fallback URL: ' . $p['thumbnail_url']);
+                wps_debug_log('[WP Property Suite] Failed to sideload thumbnail: ' . $att_id->get_error_message());
+                wps_debug_log('[WP Property Suite] Using fallback URL: ' . $p['thumbnail_url']);
             }
         }
 
@@ -113,20 +113,20 @@ function wps_install_default_data($force = false) {
             // Always save original URLs as fallback
             update_post_meta($post_id, '_property_gallery_urls', json_encode($p['gallery_urls']));
             
-            error_log('[WP Property Suite] Sideload ' . count($p['gallery_urls']) . ' gallery images for post ' . $post_id);
+            wps_debug_log('[WP Property Suite] Sideload ' . count($p['gallery_urls']) . ' gallery images for post ' . $post_id);
             foreach ($p['gallery_urls'] as $gidx => $gurl) {
-                error_log('[WP Property Suite] Gallery image ' . ($gidx + 1) . ': ' . $gurl);
+                wps_debug_log('[WP Property Suite] Gallery image ' . ($gidx + 1) . ': ' . $gurl);
                 $gatt = media_sideload_image($gurl, $post_id, 'Gallery image', 'id');
                 if (!is_wp_error($gatt)) {
                     $gallery_ids[] = $gatt;
-                    error_log('[WP Property Suite] Gallery image ' . ($gidx + 1) . ' sideloaded, ID: ' . $gatt);
+                    wps_debug_log('[WP Property Suite] Gallery image ' . ($gidx + 1) . ' sideloaded, ID: ' . $gatt);
                 } else {
-                    error_log('[WP Property Suite] Failed to sideload gallery image: ' . $gatt->get_error_message());
+                    wps_debug_log('[WP Property Suite] Failed to sideload gallery image: ' . $gatt->get_error_message());
                 }
             }
             if (!empty($gallery_ids)) {
                 update_post_meta($post_id, '_property_gallery', implode(',', $gallery_ids));
-                error_log('[WP Property Suite] Gallery saved with ' . count($gallery_ids) . ' images');
+                wps_debug_log('[WP Property Suite] Gallery saved with ' . count($gallery_ids) . ' images');
             }
         }
 
@@ -155,7 +155,7 @@ function wps_install_default_data($force = false) {
             update_post_meta($post_id, '_property_faqs', wp_json_encode($p['faqs']));
         }
 
-        error_log('[WP Property Suite] Imported demo property: ' . $post_id . ' - ' . ($p['title'] ?? ''));
+        wps_debug_log('[WP Property Suite] Imported demo property: ' . $post_id . ' - ' . ($p['title'] ?? ''));
     }
 
     // Install settings
@@ -260,7 +260,7 @@ function wps_install_default_data($force = false) {
 
     // Mark installed
     update_option('wps_default_data_installed', 1);
-    error_log('[WP Property Suite] Default data import complete');
+    wps_debug_log('[WP Property Suite] Default data import complete');
 }
 
 /**
@@ -346,10 +346,3 @@ function wps_install_default_leads() {
         );
     }
 }
-
-
-add_action('admin_init', function() {
-    if (!get_option('wps_default_data_installed')) {
-        wps_install_default_data();
-    }
-});

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "React frontend for WP Property Suite",
   "private": true,
-  "homepage": "/wp-content/plugins/Property_Plugin/",
+  "homepage": "/wp-content/plugins/wp-property-suite/",
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

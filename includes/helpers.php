@@ -8,6 +8,15 @@ if (!defined('ABSPATH')) {
  */
 
 /**
+ * Write debug messages only when WordPress debugging is explicitly enabled.
+ */
+function wps_debug_log($message) {
+    if (defined('WP_DEBUG') && WP_DEBUG) {
+        error_log($message);
+    }
+}
+
+/**
  * Format price with selected currency
  */
 function wps_format_price($price) {

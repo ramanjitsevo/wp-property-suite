@@ -95,9 +95,6 @@ function App({ containerId }) {
   };
 
   useEffect(() => {
-    console.log('WP Property Suite App loaded!');
-    console.log('Container ID:', containerId);
-    console.log('WP Property Suite Data:', window.propertyPluginData);
     fetchProperties();
   }, []);
 
@@ -137,17 +134,9 @@ function App({ containerId }) {
       }
 
       const data = await response.json();
-      console.log('Properties fetched:', data);
-      console.log('First property structure:', data[0]);
-
-      // Log all property types to debug
-      const types = data.map(p => ({ id: p.id, title: p.title, type: p.type, property_type: p.property_type, categories: p.categories }));
-      console.log('Property types found:', types);
-
       setProperties(data);
       setError(null);
     } catch (err) {
-      console.error('Error fetching properties:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -182,10 +171,7 @@ function App({ containerId }) {
     setLeadProperty(null);
   };
 
-  const handleLeadFormSubmit = (formData) => {
-    console.log('[App] Lead form submitted successfully for:', formData.email);
-    console.log('[App] Property:', leadProperty?.title);
-
+  const handleLeadFormSubmit = () => {
     // Save to localStorage that user has submitted the form
     localStorage.setItem('propertyLeadFormSubmitted', 'true');
 
@@ -230,7 +216,6 @@ function App({ containerId }) {
         }
       }
     });
-    console.log('Unique property types found:', Array.from(types));
     return Array.from(types);
   };
 
@@ -251,9 +236,7 @@ function App({ containerId }) {
     }));
   };
 
-  const handleApplyFilters = () => {
-    console.log('Filters applied:', filters);
-  };
+  const handleApplyFilters = () => {};
 
   const handleResetFilters = () => {
     setFilters({
@@ -270,9 +253,7 @@ function App({ containerId }) {
     setCurrentPage(1);
   };
 
-  const handleSearch = () => {
-    console.log('Search filters:', filters);
-  };
+  const handleSearch = () => {};
 
   // Parse price string to number
   const parsePrice = (priceString) => {
@@ -829,10 +810,14 @@ function App({ containerId }) {
       <section className="cta-section" style={{ backgroundColor: settings.ctaBgColor || '#f0f9ff' }}>
         <div className="cta-container">
           <div className="cta-image">
-            <img
-              src={settings.ctaImage || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=500'}
-              alt={settings.ctaTitle || 'Property CTA'}
-            />
+            {settings.ctaImage ? (
+              <img
+                src={settings.ctaImage}
+                alt={settings.ctaTitle || 'Property CTA'}
+              />
+            ) : (
+              <div className="cta-image-placeholder" aria-hidden="true"></div>
+            )}
           </div>
           <div className="cta-content" style={{ color: settings.ctaTextColor || '#1e3a5f' }}>
             <h2>{settings.ctaTitle || 'Want to Sell or Rent Your Property?'}</h2>

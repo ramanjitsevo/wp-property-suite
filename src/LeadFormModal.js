@@ -73,21 +73,6 @@ function LeadFormModal({ property, onClose, onSubmit }) {
     setMounted(true);
   }, []);
 
-  // Ensure Font Awesome stylesheet is loaded for icon classes like "fas fa-user"
-  useEffect(() => {
-    if (typeof document === 'undefined') return;
-    if (document.getElementById('wps-fa')) return;
-    const link = document.createElement('link');
-    link.id = 'wps-fa';
-    link.rel = 'stylesheet';
-    link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css';
-    link.crossOrigin = 'anonymous';
-    document.head.appendChild(link);
-    return () => {
-      // keep the stylesheet for other components; don't remove on unmount
-    };
-  }, []);
-
   if (!property || !mounted) return null;
 
   const modal = (
@@ -99,10 +84,7 @@ function LeadFormModal({ property, onClose, onSubmit }) {
           {/* Left Side */}
           <div className="lead-modal-left">
             <div className="lead-modal-icon">
-              <img 
-                src="https://cdn-icons-png.flaticon.com/512/263/263115.png" 
-                alt="Property"
-              />
+              <span aria-hidden="true">Home</span>
             </div>
             <h3>Interested in this property?</h3>
             <p>Fill out the form and our property expert will get back to you shortly.</p>
@@ -236,4 +218,3 @@ function LeadFormModal({ property, onClose, onSubmit }) {
 }
 
 export default LeadFormModal;
-

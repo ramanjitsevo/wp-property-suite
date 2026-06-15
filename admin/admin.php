@@ -3,25 +3,6 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-function wps_enqueue_admin_assets($hook) {
-    if (!in_array($hook, array('post.php', 'post-new.php'), true)) {
-        return;
-    }
-
-    $screen = function_exists('get_current_screen') ? get_current_screen() : null;
-    if (!$screen || $screen->post_type !== 'property') {
-        return;
-    }
-
-    wp_enqueue_style(
-        'wps-admin-font-awesome',
-        'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css',
-        array(),
-        '6.5.1'
-    );
-}
-add_action('admin_enqueue_scripts', 'wps_enqueue_admin_assets');
-
 /**
  * Add Meta Boxes for Property Details
  */
@@ -440,7 +421,8 @@ function wps_save_meta_boxes($post_id) {
         return;
     }
     
-    if (!wp_verify_nonce($_POST['wps_meta_box_nonce'], 'wps_meta_box')) {
+    $nonce = sanitize_text_field(wp_unslash($_POST['wps_meta_box_nonce']));
+    if (!wp_verify_nonce($nonce, 'wps_meta_box')) {
         return;
     }
     
@@ -453,67 +435,67 @@ function wps_save_meta_boxes($post_id) {
     }
     
     if (isset($_POST['property_price'])) {
-        update_post_meta($post_id, '_property_price', sanitize_text_field($_POST['property_price']));
+        update_post_meta($post_id, '_property_price', sanitize_text_field(wp_unslash($_POST['property_price'])));
     }
     
     if (isset($_POST['property_area'])) {
-        update_post_meta($post_id, '_property_area', sanitize_text_field($_POST['property_area']));
+        update_post_meta($post_id, '_property_area', sanitize_text_field(wp_unslash($_POST['property_area'])));
     }
     
     if (isset($_POST['property_address'])) {
-        update_post_meta($post_id, '_property_address', sanitize_text_field($_POST['property_address']));
+        update_post_meta($post_id, '_property_address', sanitize_text_field(wp_unslash($_POST['property_address'])));
     }
     
     if (isset($_POST['property_city'])) {
-        update_post_meta($post_id, '_property_city', sanitize_text_field($_POST['property_city']));
+        update_post_meta($post_id, '_property_city', sanitize_text_field(wp_unslash($_POST['property_city'])));
     }
     
     if (isset($_POST['property_state'])) {
-        update_post_meta($post_id, '_property_state', sanitize_text_field($_POST['property_state']));
+        update_post_meta($post_id, '_property_state', sanitize_text_field(wp_unslash($_POST['property_state'])));
     }
     
     if (isset($_POST['property_zipcode'])) {
-        update_post_meta($post_id, '_property_zipcode', sanitize_text_field($_POST['property_zipcode']));
+        update_post_meta($post_id, '_property_zipcode', sanitize_text_field(wp_unslash($_POST['property_zipcode'])));
     }
     
     if (isset($_POST['property_country'])) {
-        update_post_meta($post_id, '_property_country', sanitize_text_field($_POST['property_country']));
+        update_post_meta($post_id, '_property_country', sanitize_text_field(wp_unslash($_POST['property_country'])));
     }
     
     if (isset($_POST['property_status'])) {
-        update_post_meta($post_id, '_property_status', sanitize_text_field($_POST['property_status']));
+        update_post_meta($post_id, '_property_status', sanitize_text_field(wp_unslash($_POST['property_status'])));
     }
 
-    if (isset($_POST['property_featured']) && $_POST['property_featured'] === '1') {
+    if (isset($_POST['property_featured']) && sanitize_text_field(wp_unslash($_POST['property_featured'])) === '1') {
         update_post_meta($post_id, '_property_featured', '1');
     } else {
         delete_post_meta($post_id, '_property_featured');
     }
 
     if (isset($_POST['property_gallery_ids'])) {
-        $raw_ids = sanitize_text_field($_POST['property_gallery_ids']);
+        $raw_ids = sanitize_text_field(wp_unslash($_POST['property_gallery_ids']));
         $clean_ids = array_filter(array_map('absint', explode(',', $raw_ids)));
         update_post_meta($post_id, '_property_gallery', implode(',', $clean_ids));
     }
 
     // Per-property agent fields
     if (isset($_POST['property_agent_name'])) {
-        update_post_meta($post_id, '_property_agent_name', sanitize_text_field($_POST['property_agent_name']));
+        update_post_meta($post_id, '_property_agent_name', sanitize_text_field(wp_unslash($_POST['property_agent_name'])));
     }
     if (isset($_POST['property_agent_phone'])) {
-        update_post_meta($post_id, '_property_agent_phone', sanitize_text_field($_POST['property_agent_phone']));
+        update_post_meta($post_id, '_property_agent_phone', sanitize_text_field(wp_unslash($_POST['property_agent_phone'])));
     }
     if (isset($_POST['property_agent_email'])) {
-        update_post_meta($post_id, '_property_agent_email', sanitize_email($_POST['property_agent_email']));
+        update_post_meta($post_id, '_property_agent_email', sanitize_email(wp_unslash($_POST['property_agent_email'])));
     }
     if (isset($_POST['property_agent_photo'])) {
-        update_post_meta($post_id, '_property_agent_photo', esc_url_raw($_POST['property_agent_photo']));
+        update_post_meta($post_id, '_property_agent_photo', esc_url_raw(wp_unslash($_POST['property_agent_photo'])));
     }
 
     // Property FAQs (repeatable)
     if (isset($_POST['faq_question']) && is_array($_POST['faq_question'])) {
-        $questions = array_map('sanitize_text_field', $_POST['faq_question']);
-        $answers = isset($_POST['faq_answer']) && is_array($_POST['faq_answer']) ? array_map('sanitize_textarea_field', $_POST['faq_answer']) : array();
+        $questions = array_map('sanitize_text_field', wp_unslash($_POST['faq_question']));
+        $answers = isset($_POST['faq_answer']) && is_array($_POST['faq_answer']) ? array_map('sanitize_textarea_field', wp_unslash($_POST['faq_answer'])) : array();
         $combined = array();
         for ($i = 0; $i < count($questions); $i++) {
             $question = trim($questions[$i]);
@@ -533,8 +515,8 @@ function wps_save_meta_boxes($post_id) {
 
     // Additional details (repeatable)
     if (isset($_POST['additional_label']) && is_array($_POST['additional_label'])) {
-        $labels = array_map('sanitize_text_field', $_POST['additional_label']);
-        $values = isset($_POST['additional_value']) && is_array($_POST['additional_value']) ? array_map('sanitize_text_field', $_POST['additional_value']) : array();
+        $labels = array_map('sanitize_text_field', wp_unslash($_POST['additional_label']));
+        $values = isset($_POST['additional_value']) && is_array($_POST['additional_value']) ? array_map('sanitize_text_field', wp_unslash($_POST['additional_value'])) : array();
         $combined = array();
         for ($i = 0; $i < count($labels); $i++) {
             $label = trim($labels[$i]);

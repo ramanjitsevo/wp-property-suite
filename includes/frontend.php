@@ -140,9 +140,6 @@ function wps_shortcode($atts) {
     ob_start();
     ?>
     <div id="<?php echo esc_attr($container_id); ?>" class="wps-container" data-container-id="<?php echo esc_attr($container_id); ?>"></div>
-    <script>
-        console.log('WP Property Suite Shortcode rendered - Container: <?php echo esc_js($container_id); ?>');
-    </script>
     <?php
     return ob_get_clean();
 }
@@ -443,15 +440,6 @@ function wps_get_recent_property_features($property_id, $area) {
  * Enqueue scoped styles for recent properties shortcode.
  */
 function wps_enqueue_recent_properties_assets() {
-    if (!wp_style_is('font-awesome', 'enqueued')) {
-        wp_enqueue_style(
-            'font-awesome',
-            'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css',
-            array(),
-            '6.5.1'
-        );
-    }
-
     wp_register_style('wps-recent-properties', false, array(), WPS_PLUGIN_VERSION);
     wp_enqueue_style('wps-recent-properties');
     wp_add_inline_style('wps-recent-properties', '
@@ -644,30 +632,30 @@ function wps_enqueue_assets($force = false) {
     global $post;
     
     // Debug: Log when this function runs
-    error_log('WP Property Suite: Enqueue assets function called');
+    wps_debug_log('WP Property Suite: Enqueue assets function called');
     
     if ($force || wps_post_has_search_shortcode($post)) {
-        error_log('WP Property Suite: Shortcode found on page');
+        wps_debug_log('WP Property Suite: Shortcode found on page');
         
         $build_path = WPS_PLUGIN_PATH . 'build';
-        error_log('WP Property Suite: Build path = ' . $build_path);
+        wps_debug_log('WP Property Suite: Build path = ' . $build_path);
         
         // Check if build exists
         if (file_exists($build_path)) {
-            error_log('WP Property Suite: Build folder exists');
+            wps_debug_log('WP Property Suite: Build folder exists');
             
             // Get the built files (with hash)
             $js_files = glob(WPS_PLUGIN_PATH . 'build/static/js/main.*.js');
             $css_files = glob(WPS_PLUGIN_PATH . 'build/static/css/main.*.css');
             
-            error_log('WP Property Suite: JS files found = ' . count($js_files));
-            error_log('WP Property Suite: CSS files found = ' . count($css_files));
+            wps_debug_log('WP Property Suite: JS files found = ' . count($js_files));
+            wps_debug_log('WP Property Suite: CSS files found = ' . count($css_files));
             
             if (!empty($js_files)) {
                 $js_file = basename($js_files[0]);
                 $css_file = !empty($css_files) ? basename($css_files[0]) : null;
                 
-                error_log('WP Property Suite: Enqueuing JS = ' . $js_file);
+                wps_debug_log('WP Property Suite: Enqueuing JS = ' . $js_file);
                 
                 wp_enqueue_script(
                     'wps-react',
@@ -762,7 +750,7 @@ function wps_enqueue_assets($force = false) {
                 
                 // Enqueue CSS if exists
                 if ($css_file) {
-                    error_log('WP Property Suite: Enqueuing CSS = ' . $css_file);
+                    wps_debug_log('WP Property Suite: Enqueuing CSS = ' . $css_file);
                     wp_enqueue_style(
                         'wps-styles',
                         WPS_PLUGIN_URL . 'build/static/css/' . $css_file,
@@ -770,22 +758,14 @@ function wps_enqueue_assets($force = false) {
                         WPS_PLUGIN_VERSION
                     );
                 }
-                
-                // Enqueue Font Awesome
-                wp_enqueue_style(
-                    'font-awesome',
-                    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css',
-                    array(),
-                    '6.5.1'
-                );
             } else {
-                error_log('WP Property Suite: No JS files found!');
+                wps_debug_log('WP Property Suite: No JS files found!');
             }
         } else {
-            error_log('WP Property Suite: Build folder does NOT exist at ' . $build_path);
+            wps_debug_log('WP Property Suite: Build folder does NOT exist at ' . $build_path);
         }
     } else {
-        error_log('WP Property Suite: Shortcode NOT found on this page');
+        wps_debug_log('WP Property Suite: Shortcode NOT found on this page');
     }
 }
 

@@ -110,10 +110,10 @@
   margin-bottom: 25px;
 }
 
-.lead-modal-icon img {
-  width: 70px;
-  height: 70px;
-  filter: brightness(0) invert(1);
+.lead-modal-icon span {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 700;
 }
 
 .lead-modal-left h3 {

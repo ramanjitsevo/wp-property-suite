@@ -185,7 +185,7 @@ function wps_get_properties($request) {
             
             $properties[] = $property_data;
         } catch (Exception $e) {
-            error_log('[WP Property Suite] Error processing property ' . $post->ID . ': ' . $e->getMessage());
+            wps_debug_log('[WP Property Suite] Error processing property ' . $post->ID . ': ' . $e->getMessage());
             continue;
         }
     }
@@ -339,7 +339,7 @@ function wps_get_property($request) {
         
         return rest_ensure_response($property_data);
     } catch (Exception $e) {
-        error_log('[WP Property Suite] Error getting property ' . $id . ': ' . $e->getMessage());
+        wps_debug_log('[WP Property Suite] Error getting property ' . $id . ': ' . $e->getMessage());
         return new WP_Error('processing_error', 'Error processing property', array('status' => 500));
     }
 }
@@ -412,12 +412,12 @@ function wps_submit_lead($request) {
     $property_title = sanitize_text_field($params['propertyTitle'] ?? '');
 
     if (empty($name) || empty($email)) {
-        error_log('[WP Property Suite Lead] ERROR: Missing required fields - name or email');
+        wps_debug_log('[WP Property Suite Lead] ERROR: Missing required fields - name or email');
         return new WP_Error('missing_fields', 'Name and email are required.', array('status' => 400));
     }
 
     if (!is_email($email)) {
-        error_log('[WP Property Suite Lead] ERROR: Invalid email address: ' . $email);
+        wps_debug_log('[WP Property Suite Lead] ERROR: Invalid email address: ' . $email);
         return new WP_Error('invalid_email', 'Please provide a valid email address.', array('status' => 400));
     }
 
@@ -440,12 +440,12 @@ function wps_submit_lead($request) {
     );
 
     if ($inserted === false) {
-        error_log('[WP Property Suite Lead] ERROR: Database insert failed. DB error: ' . $wpdb->last_error);
+        wps_debug_log('[WP Property Suite Lead] ERROR: Database insert failed. DB error: ' . $wpdb->last_error);
         return new WP_Error('db_error', 'Could not save lead. Please try again.', array('status' => 500));
     }
 
     $lead_id = $wpdb->insert_id;
-    error_log('[WP Property Suite Lead] SUCCESS: Lead #' . $lead_id . ' saved for ' . $email);
+    wps_debug_log('[WP Property Suite Lead] SUCCESS: Lead #' . $lead_id . ' saved for ' . $email);
 
     // --- Send notification email with professional HTML template ---
     $to = wps_get_contact_email();
@@ -671,9 +671,9 @@ function wps_submit_lead($request) {
     $mail_sent = wp_mail($to, $subject, $html_body, $headers);
 
     if ($mail_sent) {
-        error_log('[WP Property Suite Lead] Email sent successfully to ' . $to . ' (Lead #' . $lead_id . ')');
+        wps_debug_log('[WP Property Suite Lead] Email sent successfully to ' . $to . ' (Lead #' . $lead_id . ')');
     } else {
-        error_log('[WP Property Suite Lead] WARNING: wp_mail() returned false for Lead #' . $lead_id . '. Check WP Mail SMTP settings.');
+        wps_debug_log('[WP Property Suite Lead] WARNING: wp_mail() returned false for Lead #' . $lead_id . '. Check WP Mail SMTP settings.');
     }
 
     return rest_ensure_response(array(

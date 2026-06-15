@@ -49,6 +49,8 @@ const FEATURE_EXCLUDE_FIELDS = [
   'propertyFaqs',
 ];
 
+const PROPERTY_PLACEHOLDER_IMAGE = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22800%22%20height%3D%22540%22%20viewBox%3D%220%200%20800%20540%22%3E%3Crect%20width%3D%22800%22%20height%3D%22540%22%20fill%3D%22%23e2e8f0%22%2F%3E%3Cpath%20d%3D%22M140%20365h520v75H140zM215%20270l185-140%20185%20140v170H215z%22%20fill%3D%22%23cbd5e1%22%2F%3E%3Cpath%20d%3D%22M340%20440V315h120v125%22%20fill%3D%22%23f8fafc%22%2F%3E%3C%2Fsvg%3E';
+
 const normalizeArrayField = (rawValue) => {
   if (Array.isArray(rawValue)) return rawValue;
   if (typeof rawValue === 'string' && rawValue.trim()) {
@@ -118,7 +120,7 @@ function PropertySingle({ property, onBack, settings }) {
         ? [thumb, ...property.gallery]
         : property.gallery;
     }
-    return [property?.thumbnail || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800'];
+    return [property?.thumbnail || PROPERTY_PLACEHOLDER_IMAGE];
   })();
 
   const additionalDetails = normalizeArrayField(

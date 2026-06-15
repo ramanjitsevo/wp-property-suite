@@ -1,11 +1,17 @@
 <?php
 /**
  * Plugin Name: WP Property Suite
+ * Plugin URI: https://evolvan.com/wp-property-suite/
  * Description: A React-powered real estate plugin for managing property listings, search filters, lead capture, and single-property pages.
  * Version: 1.0.0
+ * Requires at least: 6.0
+ * Requires PHP: 7.4
  * Author: Evolvan Info Solutions
- * Author URL: https://evolvan.com/
+ * Author URI: https://evolvan.com/
+ * License: GPL v2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: wps
+ * Domain Path: /languages
  */
 
 if (!defined('ABSPATH')) {
@@ -47,11 +53,6 @@ function wps_activate() {
     wps_register_taxonomies();
     wps_create_leads_table();
 
-    delete_option('wps_default_data_installed');
-    delete_option('wps_demo_created');
-    error_log('[WP Property Suite] Activation: Reset import flags for fresh data import');
-
-    wps_install_default_data();
     flush_rewrite_rules();
     set_transient('wps_show_activation_notice', true, 60);
 }

@@ -1475,7 +1475,7 @@ function wps_save_all_settings_ajax() {
         wp_send_json_error('Insufficient permissions');
     }
     
-    $settings = isset($_POST['settings']) ? $_POST['settings'] : array();
+    $settings = isset($_POST['settings']) && is_array($_POST['settings']) ? wp_unslash($_POST['settings']) : array();
     
     // Define which settings should use which sanitization
     $sanitize_functions = array(
@@ -1547,6 +1547,7 @@ function wps_save_all_settings_ajax() {
     );
     
     foreach ($settings as $key => $value) {
+        $key = sanitize_key($key);
         if (array_key_exists($key, $sanitize_functions)) {
             $sanitized_value = call_user_func($sanitize_functions[$key], $value);
             update_option($key, $sanitized_value);
