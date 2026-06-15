@@ -55,6 +55,7 @@ function wps_register_post_type() {
         'has_archive'         => true,
         'exclude_from_search' => false,
         'publicly_queryable'  => true,
+        'query_var'           => false,
         'show_in_rest'        => true,
         'rest_base'           => 'properties',
         'capability_type'     => 'post',
@@ -96,3 +97,110 @@ function wps_register_property_taxonomy($slug, $plural, $singular, $rewrite_slug
         'show_in_rest'      => true,
     ));
 }
+
+/**
+ * Build the React frontend URL for a property detail view.
+ */
+function wps_get_property_frontend_url($post) {
+    $post = get_post($post);
+
+    if (!$post || $post->post_type !== 'property') {
+        return home_url('/');
+    }
+
+    return add_query_arg(
+        'wps_property',
+        wps_get_property_frontend_slug($post),
+        wps_get_property_listings_url()
+    );
+}
+
+/**
+ * Return the slug format used by the React frontend: title-slug-ID.
+ */
+function wps_get_property_frontend_slug($post) {
+    $post = get_post($post);
+
+    if (!$post) {
+        return '';
+    }
+
+    $slug = sanitize_title(str_replace('&', ' and ', $post->post_title));
+    $slug = $slug ? $slug : 'property';
+
+    return $slug . '-' . intval($post->ID);
+}
+
+/**
+ * Find the page that hosts the property React shortcode.
+ */
+function wps_get_property_listings_url() {
+    $configured_page_id = absint(get_option('wps_listings_page_id', get_option('wps_property_listings_page_id', 0)));
+
+    if ($configured_page_id) {
+        $configured_page = get_post($configured_page_id);
+        if ($configured_page && $configured_page->post_type === 'page' && $configured_page->post_status === 'publish') {
+            return get_permalink($configured_page);
+        }
+    }
+
+    $pages = get_posts(array(
+        'post_type' => 'page',
+        'post_status' => 'publish',
+        'posts_per_page' => -1,
+        'orderby' => 'ID',
+        'order' => 'ASC',
+        'fields' => 'ids',
+    ));
+
+    foreach ($pages as $page_id) {
+        $content = get_post_field('post_content', $page_id);
+
+        if (has_shortcode($content, 'wps_search') || has_shortcode($content, 'wps')) {
+            return get_permalink($page_id);
+        }
+    }
+
+    return home_url('/');
+}
+
+/**
+ * Point native property permalinks to the React frontend detail URL.
+ */
+function wps_filter_property_permalink($post_link, $post) {
+    if ($post instanceof WP_Post && $post->post_type === 'property') {
+        return wps_get_property_frontend_url($post);
+    }
+
+    return $post_link;
+}
+add_filter('post_type_link', 'wps_filter_property_permalink', 10, 2);
+
+/**
+ * Point property preview links to the React frontend detail URL.
+ */
+function wps_filter_property_preview_link($preview_link, $post) {
+    if ($post instanceof WP_Post && $post->post_type === 'property') {
+        return wps_get_property_frontend_url($post);
+    }
+
+    return $preview_link;
+}
+add_filter('preview_post_link', 'wps_filter_property_preview_link', 10, 2);
+
+/**
+ * Keep the Properties list-table "View" row action aligned with frontend URLs.
+ */
+function wps_filter_property_row_actions($actions, $post) {
+    if ($post instanceof WP_Post && $post->post_type === 'property' && isset($actions['view'])) {
+        $actions['view'] = sprintf(
+            '<a href="%s" rel="bookmark" aria-label="%s">%s</a>',
+            esc_url(wps_get_property_frontend_url($post)),
+            esc_attr(sprintf(__('View "%s"', 'wps'), $post->post_title)),
+            esc_html__('View', 'wps')
+        );
+    }
+
+    return $actions;
+}
+add_filter('post_row_actions', 'wps_filter_property_row_actions', 10, 2);

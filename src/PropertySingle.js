@@ -253,7 +253,8 @@ function PropertySingle({ property, onBack, settings }) {
   const getPageUrl = () => {
     if (typeof window === 'undefined') return '';
     const url = new URL(window.location.href);
-    url.searchParams.set('property', getPropertySlug(property));
+    url.searchParams.delete('property');
+    url.searchParams.set('wps_property', getPropertySlug(property));
     return url.toString();
   };
   const getPageTitle = () => property?.title || 'Check out this property';
@@ -773,33 +774,7 @@ function PropertySingle({ property, onBack, settings }) {
                   <span className="status-badge">{statusLabel}</span>
                 </div>
               </div>
-
-              <div className="property-quick-stats">
-                <div className="stat-item">
-                  <span className="stat-icon"><i className="fas fa-bed"></i></span>
-                  <div>
-                    <span className="stat-value">{property.bedrooms || '0'}</span>                    
-                  </div>
-                </div>
-                <div className="stat-item">
-                  <span className="stat-icon"><i className="fas fa-bath"></i></span>
-                  <div>
-                    <span className="stat-value">{property.bathrooms || '0'}</span>                    
-                  </div>
-                </div>
-                <div className="stat-item">
-                  <div>
-                    <span className="stat-value">{property.area || '0'} Sq Ft</span>                    
-                  </div>
-                </div>
-                <div className="stat-item">
-                  <span className="stat-icon"><i className="fas fa-building"></i></span>
-                  <div>
-                    <span className="stat-value">{property.property_type || '0'}</span>                    
-                  </div>
-                </div>
-              </div>
-
+              
               <div className="property-info-list">
                 <h4 className="property-title">Location Detail</h4>                  
                   {property.city && (

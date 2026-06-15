@@ -563,7 +563,7 @@ function wps_submit_lead($request) {
                                                 <tr>
                                                     <td style="padding: 8px 0; border-top: 1px solid #d0e3ff;">
                                                         <strong style="color: #666666; font-size: 13px; text-transform: uppercase;">View Property</strong><br>
-                                                        <a href="' . esc_url($site_url . '/?property=' . $property_id) . '" style="color: #667eea; font-size: 15px; font-weight: bold; text-decoration: none;">Click here to view →</a>
+                                                        <a href="' . esc_url(wps_get_property_frontend_url($property_id)) . '" style="color: #667eea; font-size: 15px; font-weight: bold; text-decoration: none;">Click here to view →</a>
                                                     </td>
                                                 </tr>
                                             </table>

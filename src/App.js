@@ -19,7 +19,8 @@ const getPropertyShareUrl = (property) => {
   if (typeof window === 'undefined') return '';
 
   const url = new URL(window.location.href);
-  url.searchParams.set('property', getPropertySlug(property));
+  url.searchParams.delete('property');
+  url.searchParams.set('wps_property', getPropertySlug(property));
   return url.toString();
 };
 
@@ -103,7 +104,8 @@ function App({ containerId }) {
   useEffect(() => {
     if (!properties.length || selectedProperty || typeof window === 'undefined') return;
 
-    const propertyParam = new URLSearchParams(window.location.search).get('property');
+    const searchParams = new URLSearchParams(window.location.search);
+    const propertyParam = searchParams.get('wps_property') || searchParams.get('property');
     if (!propertyParam) return;
 
     const idMatch = propertyParam.match(/-(\d+)$/);
@@ -199,6 +201,7 @@ function App({ containerId }) {
     setSelectedProperty(null);
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href);
+      url.searchParams.delete('wps_property');
       url.searchParams.delete('property');
       window.history.pushState(null, '', url.toString());
     }

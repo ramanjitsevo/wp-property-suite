@@ -658,16 +658,6 @@ h1.property-title {
   font-weight: 600;
 }
 
-/* Quick Stats */
-.property-quick-stats {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 15px;
-  margin-bottom: 25px;
-  padding-bottom: 25px;
-  border-bottom: 2px solid #f0f0f0;
-}
-
 .stat-item {
   display: flex;
   align-items: center;
@@ -1035,10 +1025,6 @@ h1.property-title {
     font-size: 24px;
   }
 
-  .property-quick-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
   .overview-highlights {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -1136,11 +1122,6 @@ h1.property-title {
 
   .price {
     font-size: 20px;
-  }
-
-  .property-quick-stats {
-    grid-template-columns: 1fr;
-    gap: 10px;
   }
 
   .stat-item {
