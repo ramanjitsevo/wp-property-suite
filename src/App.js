@@ -94,9 +94,9 @@ function App({ containerId }) {
   };
 
   useEffect(() => {
-    console.log('Property Plugin App loaded!');
+    console.log('WP Property Suite App loaded!');
     console.log('Container ID:', containerId);
-    console.log('Property Plugin Data:', window.propertyPluginData);
+    console.log('WP Property Suite Data:', window.propertyPluginData);
     fetchProperties();
   }, []);
 
@@ -122,7 +122,7 @@ function App({ containerId }) {
   const fetchProperties = async () => {
     try {
       setLoading(true);
-      const apiUrl = window.propertyPluginData?.apiUrl || '/wp-json/property-plugin/v1';
+      const apiUrl = window.propertyPluginData?.apiUrl || '/wp-json/wps/v1';
 
       const response = await fetch(`${apiUrl}/properties`, {
         headers: {
@@ -391,11 +391,11 @@ function App({ containerId }) {
 
 
   if (loading) {
-    return <div className="property-plugin-loading">Loading properties...</div>;
+    return <div className="wps-loading">Loading properties...</div>;
   }
 
   if (error) {
-    return <div className="property-plugin-error">Error: {error}</div>;
+    return <div className="wps-error">Error: {error}</div>;
   }
 
   // Show single property page if a property is selected
@@ -404,7 +404,7 @@ function App({ containerId }) {
   }
 
   return (
-    <div className="property-plugin-app" id={containerId}>
+    <div className="wps-app" id={containerId}>
       {/* Apply custom CSS from settings */}
       {settings.customCSS && (
         <style dangerouslySetInnerHTML={{ __html: settings.customCSS }} />
@@ -762,18 +762,24 @@ function App({ containerId }) {
                           )}
                           <p className="property-price" style={{ color: settings.primaryColor || '#2563eb' }}>{property.price}</p>
                           <div className="property-features">
-                            {property.bedrooms && property.bedrooms !== 'N/A' && (
-                              <span><i className="fas fa-bed"></i> {property.bedrooms} Beds</span>
-                            )}
-                            {property.bathrooms && property.bathrooms !== 'N/A' && (
-                              <span><i className="fas fa-bath"></i> {property.bathrooms} Baths</span>
-                            )}
-                            {property.floor && property.floor !== 'N/A' && (
-                              <span><i className="fas fa-building"></i> Floor: {property.floor}</span>
-                            )}
-                            {settings.showArea !== '0' && property.area && property.area !== 'N/A' && (
-                              <span><i className="fas fa-ruler-combined"></i> {property.area}</span>
-                            )}
+                            {[
+                              property.bedrooms && property.bedrooms !== 'N/A'
+                                ? { icon: 'fa-bed', label: `${property.bedrooms} Beds` }
+                                : null,
+                              property.bathrooms && property.bathrooms !== 'N/A'
+                                ? { icon: 'fa-bath', label: `${property.bathrooms} Baths` }
+                                : null,
+                              property.floor && property.floor !== 'N/A'
+                                ? { icon: 'fa-building', label: `Floor: ${property.floor}` }
+                                : null,
+                              settings.showArea !== '0' && property.area && property.area !== 'N/A'
+                                ? { icon: 'fa-ruler-combined', label: property.area }
+                                : null,
+                            ].filter(Boolean).slice(0, 3).map((feature) => (
+                              <span key={`${property.id}-${feature.icon}`}>
+                                <i className={`fas ${feature.icon}`}></i> {feature.label}
+                              </span>
+                            ))}
                           </div>
                         </div>
                       </div>

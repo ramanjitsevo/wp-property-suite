@@ -5,10 +5,10 @@ import App from './App';
 
 // Wait for DOM to load
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('Property Plugin - DOM loaded, searching for containers...');
+  console.log('WP Property Suite - DOM loaded, searching for containers...');
   
   // Find all property plugin containers
-  const containers = document.querySelectorAll('.property-plugin-container');
+  const containers = document.querySelectorAll('.wps-container');
   
   console.log('Found containers:', containers.length);
   
@@ -16,8 +16,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Create a container automatically as fallback
     console.log('No container found, creating one...');
     const newContainer = document.createElement('div');
-    newContainer.id = 'property-plugin-root-auto';
-    newContainer.className = 'property-plugin-container';
+    newContainer.id = 'wps-root-auto';
+    newContainer.className = 'wps-container';
     document.body.appendChild(newContainer);
     
     const root = ReactDOM.createRoot(newContainer);

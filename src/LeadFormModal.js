@@ -13,7 +13,7 @@ function LeadFormModal({ property, onClose, onSubmit }) {
   const [submitError, setSubmitError] = useState('');
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
-  const apiUrl  = window.propertyPluginData?.apiUrl  || '/wp-json/property-plugin/v1';
+  const apiUrl  = window.propertyPluginData?.apiUrl  || '/wp-json/wps/v1';
   const nonce   = window.propertyPluginData?.nonce   || '';
 
   const handleInputChange = (e) => {
@@ -76,9 +76,9 @@ function LeadFormModal({ property, onClose, onSubmit }) {
   // Ensure Font Awesome stylesheet is loaded for icon classes like "fas fa-user"
   useEffect(() => {
     if (typeof document === 'undefined') return;
-    if (document.getElementById('property-plugin-fa')) return;
+    if (document.getElementById('wps-fa')) return;
     const link = document.createElement('link');
-    link.id = 'property-plugin-fa';
+    link.id = 'wps-fa';
     link.rel = 'stylesheet';
     link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css';
     link.crossOrigin = 'anonymous';

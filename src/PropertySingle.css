@@ -35,7 +35,7 @@
   margin-bottom: 30px;
 }
 
-.property-breadcrumb .property-plugin-container {
+.property-breadcrumb .wps-container {
   max-width: 1400px;
   margin: 0 auto;
   padding: 0 40px;
@@ -961,7 +961,7 @@ h1.property-title {
 
 /* Responsive Design */
 @media (max-width: 1024px) {
-  .property-breadcrumb .property-plugin-container,
+  .property-breadcrumb .wps-container,
   .property-single-layout {
     padding-left: 30px;
     padding-right: 30px;
@@ -1012,7 +1012,7 @@ h1.property-title {
 }
 
 @media (max-width: 768px) {
-  .property-breadcrumb .property-plugin-container,
+  .property-breadcrumb .wps-container,
   .property-single-layout {
     padding-left: 20px;
     padding-right: 20px;
@@ -1105,7 +1105,7 @@ h1.property-title {
 }
 
 @media (max-width: 480px) {
-  .property-breadcrumb .property-plugin-container,
+  .property-breadcrumb .wps-container,
   .property-single-layout {
     padding-left: 15px;
     padding-right: 15px;

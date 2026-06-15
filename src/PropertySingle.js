@@ -31,7 +31,6 @@ const FEATURE_EXCLUDE_FIELDS = [
   'floor',
   'gallery',
   'gallery_urls',
-  'garage',
   'agent',
   'agent_name',
   'agent_phone',
@@ -157,7 +156,6 @@ function PropertySingle({ property, onBack, settings }) {
         property?.bedrooms ? `${property.bedrooms} bedroom(s)` : '',
         property?.bathrooms ? `${property.bathrooms} bathroom(s)` : '',
         property?.area ? `${property.area} sq ft` : '',
-        property?.garage ? `${property.garage} garage space(s)` : '',
       ].filter(Boolean).join(', ') || 'Key features are listed in the Features tab.',
     },
   ];
@@ -388,7 +386,7 @@ function PropertySingle({ property, onBack, settings }) {
   );
 
   if (!property) {
-    return <div className="property-plugin-loading">Loading property details...</div>;
+    return <div className="wps-loading">Loading property details...</div>;
   }
 
   return (
@@ -472,7 +470,7 @@ function PropertySingle({ property, onBack, settings }) {
 
       {/* Breadcrumb Navigation with SEO-friendly structure */}
       <nav className="property-breadcrumb" aria-label="Breadcrumb" itemScope itemType="https://schema.org/BreadcrumbList">
-        <div className="property-plugin-container">
+        <div className="wps-container">
           <span itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
             <button type="button" onClick={onBack} className="breadcrumb-link" itemProp="item">
               <span itemProp="name">Home</span>
@@ -494,7 +492,7 @@ function PropertySingle({ property, onBack, settings }) {
         </div>
       </nav>
 
-      <div className="property-plugin-container">
+      <div className="wps-container">
         <div className="property-single-layout">
           <div className="property-single-main">
             <div className="property-gallery">
@@ -630,7 +628,6 @@ function PropertySingle({ property, onBack, settings }) {
                   {[
                     { icon: 'fa-bed', label: 'Bedrooms', value: property.bedrooms || '0' },
                     { icon: 'fa-bath', label: 'Bathrooms', value: property.bathrooms || '0' },
-                    { icon: 'fa-car', label: 'Garage', value: property.garage ? `${property.garage} car(s)` : 'No garage' },
                     { icon: 'fa-vector-square', label: 'Area', value: property.area ? `${property.area} ` : 'N/A' },
                     { icon: 'fa-building', label: 'Property Type', value: property.property_type || 'N/A' },
                     { icon: 'fa-layer-group', label: 'Floor', value: property.floor || 'N/A' },

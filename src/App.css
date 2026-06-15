@@ -1,5 +1,5 @@
 /* Global Styles */
-.property-plugin-app {  
+.wps-app {  
   color: #333;
   line-height: 1.6;
   width: 100vw;
@@ -11,7 +11,7 @@
   margin-right: -50vw;
 }
 
-.property-plugin-app * {
+.wps-app * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -155,7 +155,7 @@
   border-color: #4fc3f7;
 }
 
-.property-plugin-app select {
+.wps-app select {
   width: 100%;
   min-height: 46px;
   padding: 11px 44px 11px 14px !important;
@@ -185,18 +185,18 @@
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
-.property-plugin-app select:hover {
+.wps-app select:hover {
   border-color: #93c5fd !important;
   background-color: #f8fbff;
 }
 
-.property-plugin-app select:focus {
+.wps-app select:focus {
   outline: none;
   border-color: #2563eb !important;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
 }
 
-.property-plugin-app select:disabled {
+.wps-app select:disabled {
   color: #94a3b8;
   cursor: not-allowed;
   background-color: #f1f5f9;
@@ -667,9 +667,9 @@
   border-top: 1px solid #f0f0f0;
   font-size: 14px;
   color: #666;
-  flex-wrap: nowrap;
-  overflow: hidden;
-  justify-content: space-between;
+  flex-wrap: wrap;
+  overflow: visible;
+  justify-content: space-around;
 }
 
 .property-features span {
@@ -938,8 +938,8 @@
 }
 
 /* Loading & Error States */
-.property-plugin-loading,
-.property-plugin-error,
+.wps-loading,
+.wps-error,
 .no-results {
   text-align: center;
   padding: 60px 20px;
@@ -947,7 +947,7 @@
   color: #666;
 }
 
-.property-plugin-error {
+.wps-error {
   color: #d32f2f;
   background: #ffebee;
   border-radius: 8px;
@@ -956,7 +956,7 @@
 
 /* Responsive Design */
 @media (max-width: 1024px) {
-  .property-plugin-container,
+  .wps-container,
   .search-container,
   .properties-container,
   .cta-container,
@@ -999,7 +999,7 @@
 }
 
 @media (max-width: 768px) {
-  .property-plugin-container,
+  .wps-container,
   .search-container,
   .properties-container,
   .cta-container,
@@ -1077,7 +1077,7 @@
 }
 
 @media (max-width: 480px) {
-  .property-plugin-container,
+  .wps-container,
   .search-container,
   .properties-container,
   .cta-container,

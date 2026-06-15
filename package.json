@@ -1,7 +1,7 @@
 {
-  "name": "property-plugin-react",
+  "name": "wps-react",
   "version": "1.0.0",
-  "description": "React frontend for Property Plugin",
+  "description": "React frontend for WP Property Suite",
   "private": true,
   "homepage": "/wp-content/plugins/Property_Plugin/",
   "dependencies": {
