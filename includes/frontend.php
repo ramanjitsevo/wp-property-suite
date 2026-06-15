@@ -148,6 +148,495 @@ function wps_shortcode($atts) {
 }
 
 /**
+ * Display recently added properties.
+ *
+ * Usage: [wps_recent_properties posts="6" columns="3" slider="no"]
+ */
+function wps_recent_properties_shortcode($atts) {
+    $atts = shortcode_atts(array(
+        'posts' => 3,
+        'number' => '',
+        'limit' => '',
+        'columns' => 3,
+        'cols' => '',
+        'slider' => 'no',
+        'enable_slider' => '',
+    ), $atts, 'wps_recent_properties');
+
+    $posts_count = !empty($atts['number']) ? $atts['number'] : $atts['posts'];
+    $posts_count = !empty($atts['limit']) ? $atts['limit'] : $posts_count;
+    $posts_count = max(1, min(50, absint($posts_count)));
+
+    $columns = !empty($atts['cols']) ? $atts['cols'] : $atts['columns'];
+    $columns = max(1, min(6, absint($columns)));
+
+    $slider_value = !empty($atts['enable_slider']) ? $atts['enable_slider'] : $atts['slider'];
+    $slider_enabled = in_array(strtolower((string) $slider_value), array('1', 'true', 'yes', 'on'), true);
+
+    wps_enqueue_recent_properties_assets();
+
+    $properties = get_posts(array(
+        'post_type' => 'property',
+        'post_status' => 'publish',
+        'posts_per_page' => $posts_count,
+        'orderby' => 'date',
+        'order' => 'DESC',
+    ));
+
+    if (empty($properties)) {
+        return '<div class="wps-recent-properties-empty">' . esc_html__('No properties found.', 'wps') . '</div>';
+    }
+
+    $container_id = 'wps-recent-properties-' . uniqid();
+    $wrapper_classes = 'wps-recent-properties';
+    $wrapper_classes .= $slider_enabled ? ' is-slider' : ' is-grid';
+
+    ob_start();
+    ?>
+    <section id="<?php echo esc_attr($container_id); ?>" class="<?php echo esc_attr($wrapper_classes); ?>" style="<?php echo $slider_enabled ? '' : '--wps-recent-columns:' . esc_attr($columns) . ';--wps-recent-tablet-columns:' . esc_attr(min($columns, 2)) . ';'; ?>">
+        <?php if ($slider_enabled) : ?>
+            <button type="button" class="wps-recent-slider-btn wps-recent-slider-prev" aria-label="<?php esc_attr_e('Previous properties', 'wps'); ?>">
+                <i class="fas fa-chevron-left" aria-hidden="true"></i>
+            </button>
+        <?php endif; ?>
+
+        <div class="wps-recent-properties-track">
+            <?php foreach ($properties as $property) : ?>
+                <?php echo wps_render_recent_property_card($property); ?>
+            <?php endforeach; ?>
+        </div>
+
+        <?php if ($slider_enabled) : ?>
+            <button type="button" class="wps-recent-slider-btn wps-recent-slider-next" aria-label="<?php esc_attr_e('Next properties', 'wps'); ?>">
+                <i class="fas fa-chevron-right" aria-hidden="true"></i>
+            </button>
+            <script>
+                (function() {
+                    var root = document.getElementById('<?php echo esc_js($container_id); ?>');
+                    if (!root) {
+                        return;
+                    }
+
+                    var track = root.querySelector('.wps-recent-properties-track');
+                    var previous = root.querySelector('.wps-recent-slider-prev');
+                    var next = root.querySelector('.wps-recent-slider-next');
+
+                    if (!track || !previous || !next) {
+                        return;
+                    }
+
+                    function slide(direction) {
+                        var card = track.querySelector('.wps-recent-property-card');
+                        var distance = card ? card.getBoundingClientRect().width + 20 : track.clientWidth;
+                        track.scrollBy({ left: direction * distance, behavior: 'smooth' });
+                    }
+
+                    previous.addEventListener('click', function() { slide(-1); });
+                    next.addEventListener('click', function() { slide(1); });
+                }());
+            </script>
+        <?php endif; ?>
+    </section>
+    <?php
+
+    return ob_get_clean();
+}
+
+/**
+ * Display properties marked as featured in the admin.
+ *
+ * Usage: [wps_featured_properties posts="6" columns="3" slider="no"]
+ */
+function wps_featured_properties_shortcode($atts) {
+    $atts = shortcode_atts(array(
+        'posts' => 3,
+        'number' => '',
+        'limit' => '',
+        'columns' => 3,
+        'cols' => '',
+        'slider' => 'no',
+        'enable_slider' => '',
+    ), $atts, 'wps_featured_properties');
+
+    $posts_count = !empty($atts['number']) ? $atts['number'] : $atts['posts'];
+    $posts_count = !empty($atts['limit']) ? $atts['limit'] : $posts_count;
+    $posts_count = max(1, min(50, absint($posts_count)));
+
+    $columns = !empty($atts['cols']) ? $atts['cols'] : $atts['columns'];
+    $columns = max(1, min(6, absint($columns)));
+
+    $slider_value = !empty($atts['enable_slider']) ? $atts['enable_slider'] : $atts['slider'];
+    $slider_enabled = in_array(strtolower((string) $slider_value), array('1', 'true', 'yes', 'on'), true);
+
+    wps_enqueue_recent_properties_assets();
+
+    $properties = get_posts(array(
+        'post_type' => 'property',
+        'post_status' => 'publish',
+        'posts_per_page' => $posts_count,
+        'orderby' => 'date',
+        'order' => 'DESC',
+        'meta_query' => array(
+            array(
+                'key' => '_property_featured',
+                'value' => '1',
+                'compare' => '=',
+            ),
+        ),
+    ));
+
+    if (empty($properties)) {
+        return '<div class="wps-recent-properties-empty">' . esc_html__('No featured properties found.', 'wps') . '</div>';
+    }
+
+    $container_id = 'wps-featured-properties-' . uniqid();
+    $wrapper_classes = 'wps-recent-properties wps-featured-properties';
+    $wrapper_classes .= $slider_enabled ? ' is-slider' : ' is-grid';
+
+    ob_start();
+    ?>
+    <section id="<?php echo esc_attr($container_id); ?>" class="<?php echo esc_attr($wrapper_classes); ?>" style="<?php echo $slider_enabled ? '' : '--wps-recent-columns:' . esc_attr($columns) . ';--wps-recent-tablet-columns:' . esc_attr(min($columns, 2)) . ';'; ?>">
+        <?php if ($slider_enabled) : ?>
+            <button type="button" class="wps-recent-slider-btn wps-recent-slider-prev" aria-label="<?php esc_attr_e('Previous properties', 'wps'); ?>">
+                <i class="fas fa-chevron-left" aria-hidden="true"></i>
+            </button>
+        <?php endif; ?>
+
+        <div class="wps-recent-properties-track">
+            <?php foreach ($properties as $property) : ?>
+                <?php echo wps_render_recent_property_card($property); ?>
+            <?php endforeach; ?>
+        </div>
+
+        <?php if ($slider_enabled) : ?>
+            <button type="button" class="wps-recent-slider-btn wps-recent-slider-next" aria-label="<?php esc_attr_e('Next properties', 'wps'); ?>">
+                <i class="fas fa-chevron-right" aria-hidden="true"></i>
+            </button>
+            <script>
+                (function() {
+                    var root = document.getElementById('<?php echo esc_js($container_id); ?>');
+                    if (!root) {
+                        return;
+                    }
+
+                    var track = root.querySelector('.wps-recent-properties-track');
+                    var previous = root.querySelector('.wps-recent-slider-prev');
+                    var next = root.querySelector('.wps-recent-slider-next');
+
+                    if (!track || !previous || !next) {
+                        return;
+                    }
+
+                    function slide(direction) {
+                        var card = track.querySelector('.wps-recent-property-card');
+                        var distance = card ? card.getBoundingClientRect().width + 20 : track.clientWidth;
+                        track.scrollBy({ left: direction * distance, behavior: 'smooth' });
+                    }
+
+                    previous.addEventListener('click', function() { slide(-1); });
+                    next.addEventListener('click', function() { slide(1); });
+                }());
+            </script>
+        <?php endif; ?>
+    </section>
+    <?php
+
+    return ob_get_clean();
+}
+
+/**
+ * Render a compact property card for the recent properties shortcode.
+ */
+function wps_render_recent_property_card($property) {
+    $property = get_post($property);
+
+    if (!$property || $property->post_type !== 'property') {
+        return '';
+    }
+
+    $thumbnail = get_the_post_thumbnail_url($property->ID, 'large');
+    if (!$thumbnail) {
+        $thumbnail = get_post_meta($property->ID, '_property_thumbnail_url', true);
+    }
+    if (!$thumbnail) {
+        $gallery_urls = get_post_meta($property->ID, '_property_gallery_urls', true);
+        $gallery_urls = $gallery_urls ? json_decode($gallery_urls, true) : array();
+        $thumbnail = is_array($gallery_urls) && !empty($gallery_urls[0]) ? $gallery_urls[0] : '';
+    }
+
+    $price = wps_format_price(get_post_meta($property->ID, '_property_price', true));
+    $area = get_post_meta($property->ID, '_property_area', true);
+    $city = get_post_meta($property->ID, '_property_city', true);
+    $address = get_post_meta($property->ID, '_property_address', true);
+    $status = get_post_meta($property->ID, '_property_status', true);
+    $status_label = $status ? ucwords(str_replace('-', ' ', $status)) : __('For Sale', 'wps');
+    $location = $city ?: $address;
+    $features = wps_get_recent_property_features($property->ID, $area);
+    $property_url = function_exists('wps_get_property_frontend_url') ? wps_get_property_frontend_url($property) : get_permalink($property);
+
+    ob_start();
+    ?>
+    <article class="wps-recent-property-card">
+        <a class="wps-recent-property-link" href="<?php echo esc_url($property_url); ?>">
+            <div class="wps-recent-property-image-wrap">
+                <?php if ($thumbnail) : ?>
+                    <img class="wps-recent-property-image" src="<?php echo esc_url($thumbnail); ?>" alt="<?php echo esc_attr($property->post_title); ?>">
+                <?php else : ?>
+                    <div class="wps-recent-property-placeholder"><?php esc_html_e('No Image', 'wps'); ?></div>
+                <?php endif; ?>
+                <span class="wps-recent-property-badge"><?php echo esc_html($status_label); ?></span>
+            </div>
+            <div class="wps-recent-property-body">
+                <h3 class="wps-recent-property-title"><?php echo esc_html($property->post_title); ?></h3>
+                <?php if ($location) : ?>
+                    <p class="wps-recent-property-location">
+                        <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+                        <?php echo esc_html($location); ?>
+                    </p>
+                <?php endif; ?>
+                <p class="wps-recent-property-price"><?php echo esc_html($price); ?></p>
+                <?php if (!empty($features)) : ?>
+                    <div class="wps-recent-property-features">
+                        <?php foreach ($features as $feature) : ?>
+                            <span>
+                                <i class="fas <?php echo esc_attr($feature['icon']); ?>" aria-hidden="true"></i>
+                                <?php echo esc_html($feature['label']); ?>
+                            </span>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </a>
+    </article>
+    <?php
+
+    return ob_get_clean();
+}
+
+/**
+ * Return the first three available card features.
+ */
+function wps_get_recent_property_features($property_id, $area) {
+    $bedrooms = wp_get_post_terms($property_id, 'bedrooms', array('fields' => 'names'));
+    $bathrooms = wp_get_post_terms($property_id, 'bathrooms', array('fields' => 'names'));
+    $floors = wp_get_post_terms($property_id, 'property-floor', array('fields' => 'names'));
+
+    $features = array();
+
+    if (!empty($bedrooms[0])) {
+        $features[] = array('icon' => 'fa-bed', 'label' => sprintf(__('%s Beds', 'wps'), $bedrooms[0]));
+    }
+    if (!empty($bathrooms[0])) {
+        $features[] = array('icon' => 'fa-bath', 'label' => sprintf(__('%s Baths', 'wps'), $bathrooms[0]));
+    }
+    if (!empty($floors[0])) {
+        $features[] = array('icon' => 'fa-building', 'label' => sprintf(__('Floor: %s', 'wps'), $floors[0]));
+    }
+    if (get_option('wps_show_area', '1') !== '0' && !empty($area)) {
+        $features[] = array('icon' => 'fa-ruler-combined', 'label' => $area . ' sq ft');
+    }
+
+    return array_slice($features, 0, 3);
+}
+
+/**
+ * Enqueue scoped styles for recent properties shortcode.
+ */
+function wps_enqueue_recent_properties_assets() {
+    if (!wp_style_is('font-awesome', 'enqueued')) {
+        wp_enqueue_style(
+            'font-awesome',
+            'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css',
+            array(),
+            '6.5.1'
+        );
+    }
+
+    wp_register_style('wps-recent-properties', false, array(), WPS_PLUGIN_VERSION);
+    wp_enqueue_style('wps-recent-properties');
+    wp_add_inline_style('wps-recent-properties', '
+        .wps-recent-properties {
+            --wps-recent-gap: 20px;
+            position: relative;
+            width: 100%;
+            margin: 24px 0;
+        }
+        .wps-recent-properties-track {
+            display: grid;
+            gap: var(--wps-recent-gap);
+        }
+        .wps-recent-properties.is-grid .wps-recent-properties-track {
+            grid-template-columns: repeat(var(--wps-recent-columns, 3), minmax(0, 1fr));
+        }
+        .wps-recent-properties.is-slider {
+            padding: 0 48px;
+        }
+        .wps-recent-properties.is-slider .wps-recent-properties-track {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .wps-recent-properties.is-slider .wps-recent-properties-track::-webkit-scrollbar {
+            display: none;
+        }
+        .wps-recent-properties.is-slider .wps-recent-property-card {
+            flex: 0 0 min(320px, 85vw);
+            scroll-snap-align: start;
+        }
+        .wps-recent-property-card {
+            min-width: 0;
+            overflow: hidden;
+            background: ' . esc_html(get_option('wps_card_background', '#ffffff')) . ';
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .wps-recent-property-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+        .wps-recent-property-link {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            color: inherit;
+            text-decoration: none;
+        }
+        .wps-recent-property-image-wrap {
+            position: relative;
+            height: 220px;
+            overflow: hidden;
+            background: #eef2f7;
+        }
+        .wps-recent-property-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.25s ease;
+        }
+        .wps-recent-property-card:hover .wps-recent-property-image {
+            transform: scale(1.04);
+        }
+        .wps-recent-property-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            color: #64748b;
+            font-weight: 600;
+        }
+        .wps-recent-property-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            padding: 5px 12px;
+            border-radius: 4px;
+            background: ' . esc_html(get_option('wps_secondary_color', '#10b981')) . ';
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .wps-recent-property-body {
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            padding: 20px;
+        }
+        .wps-recent-property-title {
+            min-height: 48px;
+            margin: 0 0 8px;
+            overflow: hidden;
+            color: #1a1a2e;
+            font-size: 18px;
+            font-weight: 600;
+            line-height: 1.35;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+        }
+        .wps-recent-property-location {
+            margin: 0 0 10px;
+            color: #666;
+            font-size: 14px;
+        }
+        .wps-recent-property-price {
+            margin: 0 0 15px;
+            color: ' . esc_html(get_option('wps_primary_color', '#2563eb')) . ';
+            font-size: 22px;
+            font-weight: 800;
+        }
+        .wps-recent-property-features {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            gap: 12px;
+            margin-top: auto;
+            padding-top: 12px;
+            border-top: 1px solid #f0f0f0;
+            color: #666;
+            font-size: 14px;
+        }
+        .wps-recent-property-features span {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+        .wps-recent-property-features i {
+            color: #667eea;
+        }
+        .wps-recent-slider-btn {
+            position: absolute;
+            top: 50%;
+            z-index: 2;
+            width: 38px;
+            height: 38px;
+            border: 0;
+            border-radius: 50%;
+            background: #fff;
+            color: #1f2937;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18);
+            cursor: pointer;
+            transform: translateY(-50%);
+        }
+        .wps-recent-slider-prev {
+            left: 0;
+        }
+        .wps-recent-slider-next {
+            right: 0;
+        }
+        .wps-recent-properties-empty {
+            padding: 18px;
+            border-radius: 8px;
+            background: #f8fafc;
+            color: #64748b;
+            text-align: center;
+        }
+        @media (max-width: 900px) {
+            .wps-recent-properties.is-grid .wps-recent-properties-track {
+                grid-template-columns: repeat(var(--wps-recent-tablet-columns, 2), minmax(0, 1fr));
+            }
+        }
+        @media (max-width: 560px) {
+            .wps-recent-properties.is-grid .wps-recent-properties-track {
+                grid-template-columns: 1fr;
+            }
+            .wps-recent-properties.is-slider {
+                padding: 0;
+            }
+            .wps-recent-slider-btn {
+                display: none;
+            }
+        }
+    ');
+}
+
+/**
  * Enqueue React assets
  */
 function wps_enqueue_assets($force = false) {

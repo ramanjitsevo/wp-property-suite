@@ -32,7 +32,8 @@ function wps_init() {
     add_action('init', 'wps_register_taxonomies');
     add_action('rest_api_init', 'wps_register_routes');
     add_shortcode('wps_search', 'wps_shortcode');
-    add_shortcode('wps', 'wps_shortcode');
+    add_shortcode('wps_recent_properties', 'wps_recent_properties_shortcode');
+    add_shortcode('wps_featured_properties', 'wps_featured_properties_shortcode');
     add_action('wp_enqueue_scripts', 'wps_enqueue_assets');
     add_action('wp', 'wps_handle_layout');
 }

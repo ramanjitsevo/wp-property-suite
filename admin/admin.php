@@ -52,6 +52,7 @@ function wps_meta_box_callback($post) {
     $zipcode = get_post_meta($post->ID, '_property_zipcode', true);
     $country = get_post_meta($post->ID, '_property_country', true);
     $status = get_post_meta($post->ID, '_property_status', true);
+    $featured = get_post_meta($post->ID, '_property_featured', true);
     $gallery_ids = get_post_meta($post->ID, '_property_gallery', true);
     $gallery_ids_array = !empty($gallery_ids) ? array_filter(explode(',', $gallery_ids)) : array();
     $agent_name = get_post_meta($post->ID, '_property_agent_name', true);
@@ -87,6 +88,14 @@ function wps_meta_box_callback($post) {
     <p>
         <label for="property_area"><?php _e('Area (sq ft):', 'wps'); ?></label><br>
         <input type="number" id="property_area" name="property_area" value="<?php echo esc_attr($area); ?>" style="width: 100%;" placeholder="e.g., 1500">
+    </p>
+    <p>
+        <label>
+            <input type="checkbox" name="property_featured" value="1" <?php checked($featured, '1'); ?>>
+            <?php _e('Mark as Featured Property', 'wps'); ?>
+        </label>
+        <br>
+        <span class="description"><?php _e('Featured properties can be displayed with the [wps_featured_properties] shortcode.', 'wps'); ?></span>
     </p>
             </div>
     <div class="wps-tab-panel" id="wps-panel-location" style="display:none;">
@@ -473,6 +482,12 @@ function wps_save_meta_boxes($post_id) {
     
     if (isset($_POST['property_status'])) {
         update_post_meta($post_id, '_property_status', sanitize_text_field($_POST['property_status']));
+    }
+
+    if (isset($_POST['property_featured']) && $_POST['property_featured'] === '1') {
+        update_post_meta($post_id, '_property_featured', '1');
+    } else {
+        delete_post_meta($post_id, '_property_featured');
     }
 
     if (isset($_POST['property_gallery_ids'])) {
