@@ -949,6 +949,10 @@ h1.property-title {
   color: white;
 }
 
+.mobile-back-to-search {
+  display: none;
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
   .property-breadcrumb .wps-container,
@@ -1002,6 +1006,31 @@ h1.property-title {
 }
 
 @media (max-width: 768px) {
+  .mobile-back-to-search {
+    position: fixed;
+    left: 16px;
+    bottom: 16px;
+    z-index: 999;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 999px;
+    background: #1a1a2e;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.24);
+    cursor: pointer;
+  }
+
+  .mobile-back-to-search i {
+    font-size: 13px;
+  }
+
   .property-breadcrumb .wps-container,
   .property-single-layout {
     padding-left: 20px;
@@ -1040,15 +1069,20 @@ h1.property-title {
   }
 
   .property-tabs {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 5px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
   }
 
   .property-tab {
-    flex: 1 1 auto;
+    flex: 0 0 auto;
     min-width: 100px;
     font-size: 14px;
     padding: 10px 12px;
+    scroll-snap-align: start;
   }
 
   .tab-content {
@@ -1077,8 +1111,9 @@ h1.property-title {
     align-items: flex-start;
   }
 
+  .features-grid,
   .additional-details-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .faq-item {
@@ -1149,11 +1184,11 @@ h1.property-title {
   }
 
   .property-tabs {
-    gap: 0;
+    gap: 5px;
   }
 
   .property-tab {
-    flex: 1 1 50%;
+    flex: 0 0 auto;
     font-size: 13px;
     padding: 8px 10px;
   }
@@ -1205,6 +1240,29 @@ h1.property-title {
 
   .additional-detail-item {
     padding: 12px;
+  }
+
+  .feature-detail-card,
+  .additional-detail-card {
+    min-width: 0;
+    padding: 10px;
+  }
+
+  .feature-detail-card {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .feature-detail-label,
+  .feature-detail-value,
+  .additional-detail-value {
+    font-size: 13px;
+    overflow-wrap: anywhere;
+  }
+
+  .feature-detail-icon {
+    font-size: 18px;
+    flex: 0 0 auto;
   }
 
   .detail-label,

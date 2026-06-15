@@ -926,6 +926,18 @@ function PropertySingle({ property, onBack, settings }) {
           </div>
         </div>
       </div>
+
+      {!isFullscreen && (
+        <button
+          type="button"
+          className="mobile-back-to-search"
+          onClick={onBack}
+          aria-label="Back to property search"
+        >
+          <i className="fas fa-arrow-left" aria-hidden="true"></i>
+          <span>Back</span>
+        </button>
+      )}
     </article>
   );
 }
