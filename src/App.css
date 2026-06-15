@@ -201,6 +201,53 @@
   background-color: #f1f5f9;
 }
 
+.wps-location-autocomplete {
+  position: relative;
+  width: 100%;
+}
+
+.wps-location-suggestions {
+  position: absolute;
+  z-index: 2147483647;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  max-height: 260px;
+  overflow-y: auto;
+  background: #ffffff;
+  border: 1px solid #d8e0ea;
+  border-radius: 8px;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.16);
+  padding: 6px;
+}
+
+.wps-location-suggestion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: #1f2937;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1.35;
+  padding: 10px;
+  text-align: left;
+  border-radius: 6px;
+}
+
+.wps-location-suggestion:hover,
+.wps-location-suggestion:focus {
+  background: #f1f5f9;
+  outline: none;
+}
+
+.wps-location-suggestion i {
+  color: #2563eb;
+  flex: 0 0 auto;
+}
+
 .btn-search {
   background: #2196f3;
   color: white;

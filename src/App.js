@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { APIProvider, useMapsLibrary } from '@vis.gl/react-google-maps';
 import './App.css';
 import PropertySingle from './PropertySingle';
 import LeadFormModal from './LeadFormModal';
@@ -24,6 +25,110 @@ const getPropertyShareUrl = (property) => {
   return url.toString();
 };
 
+function LocationAutocompleteInput({ value, onChange, placeholder = 'Enter location...' }) {
+  const places = useMapsLibrary('places');
+  const [inputValue, setInputValue] = useState(value || '');
+  const [suggestions, setSuggestions] = useState([]);
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    setInputValue(value || '');
+  }, [value]);
+
+  useEffect(() => {
+    if (!places?.AutocompleteSuggestion || inputValue.trim().length < 2) {
+      setSuggestions([]);
+      return undefined;
+    }
+
+    let isActive = true;
+    const timeoutId = window.setTimeout(async () => {
+      try {
+        const { suggestions: nextSuggestions = [] } =
+          await places.AutocompleteSuggestion.fetchAutocompleteSuggestions({
+            input: inputValue,
+          });
+
+        if (isActive) {
+          setSuggestions(nextSuggestions);
+          setIsOpen(nextSuggestions.length > 0);
+        }
+      } catch {
+        if (isActive) {
+          setSuggestions([]);
+          setIsOpen(false);
+        }
+      }
+    }, 250);
+
+    return () => {
+      isActive = false;
+      window.clearTimeout(timeoutId);
+    };
+  }, [inputValue, places]);
+
+  const handleInputChange = (event) => {
+    const nextValue = event.target.value;
+    setInputValue(nextValue);
+    onChange(nextValue);
+  };
+
+  const handleSelectSuggestion = async (suggestion) => {
+    const prediction = suggestion.placePrediction;
+
+    if (!prediction) {
+      return;
+    }
+
+    const place = prediction.toPlace();
+    await place.fetchFields({ fields: ['displayName', 'formattedAddress'] });
+
+    const nextValue = place.formattedAddress || place.displayName || prediction.text?.text || '';
+    setInputValue(nextValue);
+    onChange(nextValue);
+    setSuggestions([]);
+    setIsOpen(false);
+  };
+
+  return (
+    <div className="wps-location-autocomplete">
+      <input
+        type="text"
+        placeholder={placeholder}
+        value={inputValue}
+        onChange={handleInputChange}
+        onFocus={() => setIsOpen(suggestions.length > 0)}
+        autoComplete="off"
+      />
+      {isOpen && suggestions.length > 0 && (
+        <div className="wps-location-suggestions">
+          {suggestions.map((suggestion) => {
+            const prediction = suggestion.placePrediction;
+            const suggestionText = prediction?.text?.text || '';
+
+            if (!suggestionText) {
+              return null;
+            }
+
+            return (
+              <button
+                type="button"
+                key={prediction.placeId || suggestionText}
+                className="wps-location-suggestion"
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => handleSelectSuggestion(suggestion)}
+              >
+                <i className="fas fa-map-marker-alt"></i>
+                <span>{suggestionText}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function App({ containerId }) {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,6 +141,9 @@ function App({ containerId }) {
 
   // Get settings from WordPress
   const settings = window.propertyPluginData?.settings || {};
+  const googlePlacesApiKey = (settings.googleApiKey || '').trim();
+  const hasGooglePlacesKey = Boolean(googlePlacesApiKey);
+  console.log('Google Places API Key:', googlePlacesApiKey);
 
   // Filter states
   const [filters, setFilters] = useState({
@@ -387,7 +495,9 @@ function App({ containerId }) {
     return <PropertySingle property={selectedProperty} onBack={handleBackToList} settings={settings} />;
   }
 
-  return (
+  // Build the full app content; wrap in a single APIProvider when the key
+  // is available so the Google Maps JS API is loaded exactly once.
+  const appContent = (
     <div className="wps-app" id={containerId}>
       {/* Apply custom CSS from settings */}
       {settings.customCSS && (
@@ -468,12 +578,19 @@ function App({ containerId }) {
             </div>
             <div className="search-field">
               <label>Location</label>
-              <input
-                type="text"
-                placeholder="Enter location..."
-                value={filters.location}
-                onChange={(e) => handleFilterChange('location', e.target.value)}
-              />
+              {hasGooglePlacesKey ? (
+                <LocationAutocompleteInput
+                  value={filters.location}
+                  onChange={(nextValue) => handleFilterChange('location', nextValue)}
+                />
+              ) : (
+                <input
+                  type="text"
+                  placeholder="Enter location..."
+                  value={filters.location}
+                  onChange={(e) => handleFilterChange('location', e.target.value)}
+                />
+              )}
             </div>
             <div className="search-field">
               <label>Property Type</label>
@@ -515,12 +632,19 @@ function App({ containerId }) {
 
                 <div className="filter-group">
                   <h4>Location</h4>
-                  <input
-                    type="text"
-                    placeholder="Enter location..."
-                    value={filters.location}
-                    onChange={(e) => handleFilterChange('location', e.target.value)}
-                  />
+                  {hasGooglePlacesKey ? (
+                    <LocationAutocompleteInput
+                      value={filters.location}
+                      onChange={(nextValue) => handleFilterChange('location', nextValue)}
+                    />
+                  ) : (
+                    <input
+                      type="text"
+                      placeholder="Enter location..."
+                      value={filters.location}
+                      onChange={(e) => handleFilterChange('location', e.target.value)}
+                    />
+                  )}
                 </div>
 
                 <div className="filter-group">
@@ -854,6 +978,18 @@ function App({ containerId }) {
       </section>
     </div>
   );
+
+  // Single top-level APIProvider – avoids loading the Google Maps JS API
+  // script multiple times, which triggers "API Key not found" errors.
+  if (hasGooglePlacesKey) {
+    return (
+      <APIProvider apiKey={googlePlacesApiKey} libraries={['places']}>
+        {appContent}
+      </APIProvider>
+    );
+  }
+
+  return appContent;
 }
 
 export default App;

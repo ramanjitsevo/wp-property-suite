@@ -665,8 +665,13 @@ function wps_enqueue_assets($force = false) {
                     true
                 );
                 
-                // Pass REST API URL and settings to React
-                wp_localize_script('wps-react', 'propertyPluginData', array(
+                // Pass REST API URL and settings to React via inline script.
+                // wp_add_inline_script is used instead of wp_localize_script to
+                // guarantee the data is printed even when wps_enqueue_assets() is
+                // called after wp_enqueue_scripts has already fired (e.g. from a
+                // shortcode handler). The data is always output before the script
+                // runs, regardless of footer enqueue.
+                $wps_plugin_data = array(
                     'apiUrl' => esc_url_raw(rest_url('wps/v1')),
                     'nonce' => wp_create_nonce('wp_rest'),
                     'settings' => array(
@@ -696,6 +701,7 @@ function wps_enqueue_assets($force = false) {
                         'contactEmail' => wps_get_contact_email(),
                         'contactPhone' => get_option('wps_contact_phone', ''),
                         'customCSS' => get_option('wps_custom_css', ''),
+                        'googleApiKey' => trim((string) get_option('wps_google_api_key', '')),
                         'googleAnalytics' => get_option('wps_google_analytics', ''),
                         // CTA Section
                         'ctaImage' => get_option('wps_cta_image', ''),
@@ -744,9 +750,14 @@ function wps_enqueue_assets($force = false) {
                         'socialTwitter' => get_option('wps_social_twitter', ''),
                         'socialLinkedin' => get_option('wps_social_linkedin', ''),
                         'socialInstagram' => get_option('wps_social_instagram', ''),
-                                'currentUserId' => get_current_user_id(),
+                        'currentUserId' => get_current_user_id(),
                     )
-                ));
+                );
+                wp_add_inline_script(
+                    'wps-react',
+                    'var propertyPluginData = ' . wp_json_encode($wps_plugin_data) . ';',
+                    'before'
+                );
                 
                 // Enqueue CSS if exists
                 if ($css_file) {
