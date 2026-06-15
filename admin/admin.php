@@ -88,42 +88,49 @@ function wps_meta_box_callback($post) {
         <?php if ($google_api_key): ?>
         <script>
         jQuery(document).ready(function($) {
-            if (typeof google === 'undefined') {
-                var script = document.createElement('script');
-                script.src = 'https://maps.googleapis.com/maps/api/js?key=<?php echo esc_js($google_api_key); ?>&libraries=places';
-                script.async = true;
-                script.defer = true;
-                script.onload = function() {
-                    initAutocomplete();
-                };
-                document.head.appendChild(script);
-            } else {
-                initAutocomplete();
-            }
-            
-            function initAutocomplete() {
+            window.wpsInitAdminAutocomplete = function() {
                 var input = document.getElementById('property_address');
-                if (!input) return;
+                if (!input || input.dataset.wpsAutocompleteReady === '1' || !window.google || !google.maps || !google.maps.places) {
+                    return;
+                }
                 
                 var autocomplete = new google.maps.places.Autocomplete(input, {
-                    types: ['geocode']
+                    fields: ['address_components', 'formatted_address', 'name'],
+                    types: ['geocode'],
                 });
-                
-                autocomplete.setFields(['address_component']);
-                
+
                 autocomplete.addListener('place_changed', function() {
                     var place = autocomplete.getPlace();
-                    
-                    var components = {};
-                    for (var component of place.address_components) {
-                        components[component.types[0]] = component.long_name;
+                    if (!place || !place.address_components) {
+                        return;
                     }
-                    
+
+                    var components = {};
+                    place.address_components.forEach(function(component) {
+                        components[component.types[0]] = component.long_name;
+                    });
+
+                    if (place.formatted_address) {
+                        $('#property_address').val(place.formatted_address);
+                    }
                     $('#property_city').val(components.locality || components.sublocality || '');
                     $('#property_state').val(components.administrative_area_level_1 || '');
                     $('#property_zipcode').val(components.postal_code || '');
                     $('#property_country').val(components.country || '');
                 });
+
+                input.dataset.wpsAutocompleteReady = '1';
+            };
+
+            if (window.google && google.maps && google.maps.places) {
+                window.wpsInitAdminAutocomplete();
+            } else if (!document.getElementById('wps-google-maps-places-admin')) {
+                var script = document.createElement('script');
+                script.id = 'wps-google-maps-places-admin';
+                script.src = 'https://maps.googleapis.com/maps/api/js?key=<?php echo esc_js(rawurlencode($google_api_key)); ?>&libraries=places&callback=wpsInitAdminAutocomplete';
+                script.async = true;
+                script.defer = true;
+                document.head.appendChild(script);
             }
         });
         </script>
