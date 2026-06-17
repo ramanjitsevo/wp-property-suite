@@ -173,7 +173,7 @@ function wps_recent_properties_shortcode($atts) {
     wps_enqueue_recent_properties_assets();
 
     $properties = get_posts(array(
-        'post_type' => 'property',
+        'post_type' => 'wps_property',
         'post_status' => 'publish',
         'posts_per_page' => $posts_count,
         'orderby' => 'date',
@@ -268,7 +268,7 @@ function wps_featured_properties_shortcode($atts) {
     wps_enqueue_recent_properties_assets();
 
     $properties = get_posts(array(
-        'post_type' => 'property',
+        'post_type' => 'wps_property',
         'post_status' => 'publish',
         'posts_per_page' => $posts_count,
         'orderby' => 'date',
@@ -347,7 +347,7 @@ function wps_featured_properties_shortcode($atts) {
 function wps_render_recent_property_card($property) {
     $property = get_post($property);
 
-    if (!$property || $property->post_type !== 'property') {
+    if (!$property || $property->post_type !== 'wps_property') {
         return '';
     }
 
@@ -702,13 +702,12 @@ function wps_enqueue_assets($force = false) {
                         'contactPhone' => get_option('wps_contact_phone', ''),
                         'customCSS' => get_option('wps_custom_css', ''),
                         'googleApiKey' => trim((string) get_option('wps_google_api_key', '')),
-                        'googleAnalytics' => get_option('wps_google_analytics', ''),
                         // CTA Section
                         'ctaImage' => get_option('wps_cta_image', ''),
                         'ctaTitle' => get_option('wps_cta_title', 'Want to Sell or Rent Your Property?'),
                         'ctaDescription' => get_option('wps_cta_description', 'List your property with us and reach thousands of potential buyers and renters.'),
                         'ctaButtonText' => get_option('wps_cta_button_text', 'Add Property Now'),
-                        'ctaButtonUrl' => get_option('wps_cta_button_url', '/wp-admin/post-new.php?post_type=property'),
+                        'ctaButtonUrl' => get_option('wps_cta_button_url', '/wp-admin/post-new.php?post_type=wps_property'),
                         'ctaBgColor' => get_option('wps_cta_bg_color', '#f0f9ff'),
                         'ctaTextColor' => get_option('wps_cta_text_color', '#1e3a5f'),
                         // Features Section

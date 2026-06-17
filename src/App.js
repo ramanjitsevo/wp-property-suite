@@ -947,7 +947,7 @@ function App({ containerId }) {
             <h2>{settings.ctaTitle || 'Want to Sell or Rent Your Property?'}</h2>
             <p>{settings.ctaDescription || 'List your property with us and reach thousands of potential buyers and renters.'}</p>
             <a
-              href={settings.ctaButtonUrl || '/wp-admin/post-new.php?post_type=property'}
+              href={settings.ctaButtonUrl || '/wp-admin/post-new.php?post_type=wps_property'}
               className="btn-add-property-large"
             >
               {settings.ctaButtonText || 'Add Property Now'}

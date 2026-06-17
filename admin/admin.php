@@ -11,7 +11,7 @@ function wps_add_meta_boxes() {
         'property_details',
         __('Property Details', 'wps'),
         'wps_meta_box_callback',
-        'property',
+        'wps_property',
         'normal',
         'high'
     );

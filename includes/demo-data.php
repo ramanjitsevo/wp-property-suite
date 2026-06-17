@@ -51,7 +51,7 @@ function wps_install_default_data($force = false) {
 
     foreach ($props as $idx => $p) {
         // Skip if a property with the same title exists
-        $existing = get_page_by_title($p['title'] ?? '', OBJECT, 'property');
+        $existing = get_page_by_title($p['title'] ?? '', OBJECT, 'wps_property');
         if ($existing) {
             wps_debug_log('[WP Property Suite] Skipping property ' . ($idx + 1) . ' - already exists: ' . ($p['title'] ?? ''));
             continue;
@@ -60,7 +60,7 @@ function wps_install_default_data($force = false) {
         wps_debug_log('[WP Property Suite] Importing property ' . ($idx + 1) . '/' . count($props) . ': ' . ($p['title'] ?? ''));
 
         $post_arr = array(
-            'post_type'    => 'property',
+            'post_type'    => 'wps_property',
             'post_title'   => sanitize_text_field($p['title'] ?? 'Demo Property'),
             'post_content' => wp_kses_post($p['content'] ?? ''),
             'post_excerpt' => sanitize_text_field($p['excerpt'] ?? ''),
@@ -221,7 +221,6 @@ function wps_install_default_data($force = false) {
                 'contactEmail' => 'wps_contact_email',
                 'contactPhone' => 'wps_contact_phone',
                 'customCSS' => 'wps_custom_css',
-                'googleAnalytics' => 'wps_google_analytics',
                 'ctaTitle' => 'wps_cta_title',
                 'ctaDescription' => 'wps_cta_description',
                 'ctaButtonText' => 'wps_cta_button_text',
@@ -316,7 +315,7 @@ function wps_install_default_leads() {
     );
 
     foreach ($sample_leads as $lead) {
-        $property = get_page_by_title($lead['property_title'], OBJECT, 'property');
+        $property = get_page_by_title($lead['property_title'], OBJECT, 'wps_property');
         $property_id = $property ? intval($property->ID) : 0;
 
         $exists = $wpdb->get_var(

@@ -37,7 +37,7 @@ function wps_register_post_type() {
         'filter_items_list'     => __('Filter properties list', 'wps'),
     );
 
-    register_post_type('property', array(
+    register_post_type('wps_property', array(
         'label'               => __('Property', 'wps'),
         'description'         => __('Property listings for real estate', 'wps'),
         'labels'              => $labels,
@@ -77,7 +77,7 @@ function wps_register_taxonomies() {
  * Register a hierarchical property taxonomy with common labels.
  */
 function wps_register_property_taxonomy($slug, $plural, $singular, $rewrite_slug) {
-    register_taxonomy($slug, 'property', array(
+    register_taxonomy($slug, 'wps_property', array(
         'labels' => array(
             'name'              => $plural,
             'singular_name'     => $singular,
@@ -104,7 +104,7 @@ function wps_register_property_taxonomy($slug, $plural, $singular, $rewrite_slug
 function wps_get_property_frontend_url($post) {
     $post = get_post($post);
 
-    if (!$post || $post->post_type !== 'property') {
+    if (!$post || $post->post_type !== 'wps_property') {
         return home_url('/');
     }
 
@@ -168,7 +168,7 @@ function wps_get_property_listings_url() {
  * Point native property permalinks to the React frontend detail URL.
  */
 function wps_filter_property_permalink($post_link, $post) {
-    if ($post instanceof WP_Post && $post->post_type === 'property') {
+    if ($post instanceof WP_Post && $post->post_type === 'wps_property') {
         return wps_get_property_frontend_url($post);
     }
 
@@ -180,7 +180,7 @@ add_filter('post_type_link', 'wps_filter_property_permalink', 10, 2);
  * Point property preview links to the React frontend detail URL.
  */
 function wps_filter_property_preview_link($preview_link, $post) {
-    if ($post instanceof WP_Post && $post->post_type === 'property') {
+    if ($post instanceof WP_Post && $post->post_type === 'wps_property') {
         return wps_get_property_frontend_url($post);
     }
 
@@ -192,7 +192,7 @@ add_filter('preview_post_link', 'wps_filter_property_preview_link', 10, 2);
  * Keep the Properties list-table "View" row action aligned with frontend URLs.
  */
 function wps_filter_property_row_actions($actions, $post) {
-    if ($post instanceof WP_Post && $post->post_type === 'property' && isset($actions['view'])) {
+    if ($post instanceof WP_Post && $post->post_type === 'wps_property' && isset($actions['view'])) {
         $actions['view'] = sprintf(
             '<a href="%s" rel="bookmark" aria-label="%s">%s</a>',
             esc_url(wps_get_property_frontend_url($post)),

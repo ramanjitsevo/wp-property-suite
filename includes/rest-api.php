@@ -36,13 +36,13 @@ function wps_register_routes() {
  */
 function wps_get_properties($request) {
     // Ensure the custom post type is registered
-    if (!post_type_exists('property')) {
+    if (!post_type_exists('wps_property')) {
         wps_register_post_type();
         wps_register_taxonomies();
     }
 
     $args = array(
-        'post_type' => 'property',
+        'post_type' => 'wps_property',
         'posts_per_page' => -1,
         'post_status' => 'publish',
         'orderby' => 'date',
@@ -198,7 +198,7 @@ function wps_get_properties($request) {
  */
 function wps_get_property($request) {
     // Ensure the custom post type is registered
-    if (!post_type_exists('property')) {
+    if (!post_type_exists('wps_property')) {
         wps_register_post_type();
         wps_register_taxonomies();
     }
@@ -206,7 +206,7 @@ function wps_get_property($request) {
     $id = $request['id'];
     $post = get_post($id);
     
-    if (!$post || $post->post_type !== 'property') {
+    if (!$post || $post->post_type !== 'wps_property') {
         return new WP_Error('not_found', 'Property not found', array('status' => 404));
     }
     

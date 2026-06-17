@@ -86,7 +86,6 @@ function wps_register_settings() {
     
     // Advanced Settings
     register_setting('wps_advanced', 'wps_custom_css', array('sanitize_callback' => 'wp_strip_all_tags'));
-    register_setting('wps_advanced', 'wps_google_analytics', array('sanitize_callback' => 'sanitize_text_field'));
 
     // CTA Section Settings
     register_setting('wps_sections', 'wps_cta_image', array('sanitize_callback' => 'esc_url_raw'));
@@ -791,7 +790,7 @@ function wps_settings_page() {
                 <div class="tab-content" id="advanced">
                     <div class="settings-section">
                         <h2><?php _e('Advanced Settings', 'wps'); ?></h2>
-                        <p class="section-description"><?php _e('Custom CSS and analytics configuration', 'wps'); ?></p>
+                        <p class="section-description"><?php _e('Custom CSS configuration', 'wps'); ?></p>
                         
                         <table class="form-table">
                             <tr>
@@ -802,18 +801,6 @@ function wps_settings_page() {
                                     <textarea id="custom_css" name="wps_custom_css" 
                                               rows="10" class="large-text code"><?php echo esc_textarea(get_option('wps_custom_css', '')); ?></textarea>
                                     <p class="description"><?php _e('Add custom CSS to override plugin styles. Use with caution.', 'wps'); ?></p>
-                                </td>
-                            </tr>
-                            
-                            <tr>
-                                <th scope="row">
-                                    <label for="google_analytics"><?php _e('Google Analytics ID', 'wps'); ?></label>
-                                </th>
-                                <td>
-                                    <input type="text" id="google_analytics" name="wps_google_analytics" 
-                                           value="<?php echo esc_attr(get_option('wps_google_analytics', '')); ?>" 
-                                           class="regular-text" placeholder="G-XXXXXXXXXX" />
-                                    <p class="description"><?php _e('Enter your Google Analytics 4 Measurement ID', 'wps'); ?></p>
                                 </td>
                             </tr>
                         </table>
@@ -873,7 +860,7 @@ function wps_settings_page() {
                                 <th scope="row"><label for="cta_button_url"><?php _e('Button URL', 'wps'); ?></label></th>
                                 <td>
                                     <input type="url" id="cta_button_url" name="wps_cta_button_url"
-                                           value="<?php echo esc_attr(get_option('wps_cta_button_url', '/wp-admin/post-new.php?post_type=property')); ?>"
+                                           value="<?php echo esc_attr(get_option('wps_cta_button_url', '/wp-admin/post-new.php?post_type=wps_property')); ?>"
                                            class="large-text" placeholder="https://..." />
                                 </td>
                             </tr>
@@ -1506,7 +1493,6 @@ function wps_save_all_settings_ajax() {
         'wps_lead_form_title' => 'sanitize_text_field',
         'wps_google_api_key' => 'sanitize_text_field',
         'wps_custom_css' => 'wp_strip_all_tags',
-        'wps_google_analytics' => 'sanitize_text_field',
         // CTA section
         'wps_cta_image' => 'esc_url_raw',
         'wps_cta_title' => 'sanitize_text_field',
@@ -1911,7 +1897,7 @@ function wps_register_custom_taxonomy($slug, $name) {
         'show_in_rest'      => true,
     );
     
-    register_taxonomy($slug, 'property', $args);
+    register_taxonomy($slug, 'wps_property', $args);
 }
 
 /**
@@ -2146,7 +2132,6 @@ function wps_shortcode_guide_page() {
                     <h3><?php _e('Advanced', 'wps'); ?></h3>
                     <ul>
                         <li><?php _e('Add <strong>Custom CSS</strong> to override any plugin style', 'wps'); ?></li>
-                        <li><?php _e('Enter Google Analytics 4 Measurement ID for tracking', 'wps'); ?></li>
                     </ul>
                     <p class="ppg-where"><?php _e('Found in:', 'wps'); ?> <strong><?php _e('Settings → Advanced tab', 'wps'); ?></strong></p>
                 </div>
@@ -2197,7 +2182,7 @@ function wps_shortcode_guide_page() {
                 <span class="dashicons dashicons-admin-generic" style="vertical-align:middle; margin-right:5px;"></span>
                 <?php _e('Open Plugin Settings', 'wps'); ?>
             </a>
-            <a href="<?php echo admin_url('edit.php?post_type=property'); ?>" class="button button-secondary button-hero">
+            <a href="<?php echo admin_url('edit.php?post_type=wps_property'); ?>" class="button button-secondary button-hero">
                 <span class="dashicons dashicons-building" style="vertical-align:middle; margin-right:5px;"></span>
                 <?php _e('Manage Properties', 'wps'); ?>
             </a>
