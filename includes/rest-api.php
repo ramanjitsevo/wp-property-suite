@@ -81,6 +81,8 @@ function wps_get_properties($request) {
             $state = get_post_meta($post->ID, '_property_state', true);
             $zipcode = get_post_meta($post->ID, '_property_zipcode', true);
             $country = get_post_meta($post->ID, '_property_country', true);
+            $latitude = get_post_meta($post->ID, '_property_latitude', true);
+            $longitude = get_post_meta($post->ID, '_property_longitude', true);
             $status = get_post_meta($post->ID, '_property_status', true);
             
             // Get gallery images
@@ -157,6 +159,10 @@ function wps_get_properties($request) {
                 'state' => $state ?: '',
                 'zipcode' => $zipcode ?: '',
                 'country' => $country ?: '',
+                'latitude' => is_numeric($latitude) ? (float) $latitude : null,
+                'longitude' => is_numeric($longitude) ? (float) $longitude : null,
+                'lat' => is_numeric($latitude) ? (float) $latitude : null,
+                'lng' => is_numeric($longitude) ? (float) $longitude : null,
                 'status' => $status ?: 'for-sale',
                 'property_type' => !empty($property_types) ? $property_types[0] : 'Property',
                 'location' => !empty($locations) ? $locations[0] : 'Location',
@@ -238,6 +244,8 @@ function wps_get_property($request) {
         $state = get_post_meta($post->ID, '_property_state', true);
         $zipcode = get_post_meta($post->ID, '_property_zipcode', true);
         $country = get_post_meta($post->ID, '_property_country', true);
+        $latitude = get_post_meta($post->ID, '_property_latitude', true);
+        $longitude = get_post_meta($post->ID, '_property_longitude', true);
         $status = get_post_meta($post->ID, '_property_status', true);
         
         // Get gallery images
@@ -314,6 +322,10 @@ function wps_get_property($request) {
             'state' => $state ?: '',
             'zipcode' => $zipcode ?: '',
             'country' => $country ?: '',
+            'latitude' => is_numeric($latitude) ? (float) $latitude : null,
+            'longitude' => is_numeric($longitude) ? (float) $longitude : null,
+            'lat' => is_numeric($latitude) ? (float) $latitude : null,
+            'lng' => is_numeric($longitude) ? (float) $longitude : null,
             'status' => $status ?: 'for-sale',
             'property_type' => !empty($property_types) ? $property_types[0] : 'Property',
             'location' => !empty($locations) ? $locations[0] : 'Location',

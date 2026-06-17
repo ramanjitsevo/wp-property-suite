@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Map, Marker } from '@vis.gl/react-google-maps';
 import './PropertySingle.css';
 
 const STATUS_LABELS = {
@@ -23,6 +24,10 @@ const FEATURE_EXCLUDE_FIELDS = [
   'state',
   'zipcode',
   'country',
+  'latitude',
+  'longitude',
+  'lat',
+  'lng',
   'status',
   'property_type',
   'location',
@@ -112,6 +117,11 @@ function PropertySingle({ property, onBack, settings }) {
 
   const contactFormRef = useRef(null);
   const statusLabel = STATUS_LABELS[property?.status] || property?.status || 'For Sale';
+  const latitude = parseFloat(property?.latitude ?? property?.lat);
+  const longitude = parseFloat(property?.longitude ?? property?.lng);
+  const hasMapCoordinates = Number.isFinite(latitude) && Number.isFinite(longitude);
+  const mapCenter = hasMapCoordinates ? { lat: latitude, lng: longitude } : null;
+  const canRenderMap = hasMapCoordinates && Boolean(settings?.googleApiKey);
 
   const galleryImages = (() => {
     if (property?.gallery && property.gallery.length > 0) {
@@ -388,6 +398,48 @@ function PropertySingle({ property, onBack, settings }) {
     </div>
   );
 
+  const renderLocationContent = ({ compact = false } = {}) => {
+    if (canRenderMap) {
+      return (
+        <div className={`property-google-map${compact ? ' property-google-map-compact' : ''}`}>
+          <Map
+            defaultCenter={mapCenter}
+            defaultZoom={15}
+            gestureHandling="greedy"
+            disableDefaultUI={false}
+          >
+            <Marker position={mapCenter} title={property.title || 'Property location'} />
+          </Map>
+        </div>
+      );
+    }
+
+    return (
+      <div className={`map-placeholder${compact ? ' map-placeholder-compact' : ''}`}>
+        {property.address ? (
+          <address className="map-address" itemProp="address" itemScope itemType="https://schema.org/PostalAddress">
+            <div className={`map-pin${compact ? ' map-pin-compact' : ''}`}><i className="fas fa-map-marker-alt"></i></div>
+            <p className={`map-address-line${compact ? ' map-address-line-large' : ''}`} itemProp="streetAddress">{property.address}</p>
+            <p className="map-address-region">
+              <span itemProp="addressLocality">{property.city}</span>
+              {property.city && property.state && ', '}
+              <span itemProp="addressRegion">{property.state}</span>
+              {property.state && property.zipcode && (compact ? ', ' : ' ')}
+              <span itemProp="postalCode">{property.zipcode}</span>
+              {property.zipcode && property.country && ', '}
+              <span itemProp="addressCountry">{property.country}</span>
+            </p>
+          </address>
+        ) : (
+          <>
+            <div className="map-pin"><i className="fas fa-map-marker-alt"></i></div>
+            <p>Address not available</p>
+          </>
+        )}
+      </div>
+    );
+  };
+
   if (!property) {
     return <div className="wps-loading">Loading property details...</div>;
   }
@@ -595,29 +647,7 @@ function PropertySingle({ property, onBack, settings }) {
                   </div>
                   <div className="overview-map">
                     <h2>Property Location</h2>
-                    <div className="map-placeholder">
-                      {property.address ? (
-                        <address className="map-address" itemProp="address" itemScope itemType="https://schema.org/PostalAddress">
-                          <div className="map-pin"><i className="fas fa-map-marker-alt"></i></div>
-                          <p className="map-address-line" itemProp="streetAddress">{property.address}</p>
-                          <span itemProp="addressLocality">{property.city}</span>
-                          {property.city && property.state && ', '}
-                          <span itemProp="addressRegion">{property.state}</span>
-                          {property.state && property.zipcode && ' '}
-                          <span itemProp="postalCode">{property.zipcode}</span>
-                          {property.country && (
-                            <>,
-                            <span itemProp="addressCountry">{property.country}</span>
-                            </>
-                          )}
-                        </address>
-                      ) : (
-                        <>
-                          <div className="map-pin"><i className="fas fa-map-marker-alt"></i></div>
-                          <p>Address not available</p>
-                        </>
-                      )}
-                    </div>
+                    {renderLocationContent()}
                   </div>
                 </div>
                 {renderBottomBar()}
@@ -672,28 +702,7 @@ function PropertySingle({ property, onBack, settings }) {
             {activeTab === 'location' && (
               <section className="property-overview-section" aria-labelledby="property-location-heading">
                 <h2 id="property-location-heading" className="section-heading">Property Location</h2>
-                <div className="map-placeholder map-placeholder-compact">
-                  {property.address ? (
-                    <address className="map-address" itemProp="address" itemScope itemType="https://schema.org/PostalAddress">
-                      <div className="map-pin map-pin-compact"><i className="fas fa-map-marker-alt"></i></div>
-                      <p className="map-address-line map-address-line-large" itemProp="streetAddress">{property.address}</p>
-                      <p className="map-address-region">
-                        <span itemProp="addressLocality">{property.city}</span>
-                        {property.city && property.state && ', '}
-                        <span itemProp="addressRegion">{property.state}</span>
-                        {property.state && property.zipcode && ', '}
-                        <span itemProp="postalCode">{property.zipcode}</span>
-                        {property.zipcode && property.country && ', '}
-                        <span itemProp="addressCountry">{property.country}</span>
-                      </p>
-                    </address>
-                  ) : (
-                    <>
-                      <div className="map-pin"><i className="fas fa-map-marker-alt"></i></div>
-                      <p>Address not available</p>
-                    </>
-                  )}
-                </div>
+                {renderLocationContent({ compact: true })}
 
                 <dl className="location-detail-list">
                   {[
@@ -702,6 +711,8 @@ function PropertySingle({ property, onBack, settings }) {
                     { label: 'State', value: property.state },
                     { label: 'Zip Code', value: property.zipcode },
                     { label: 'Country', value: property.country },
+                    { label: 'Latitude', value: hasMapCoordinates ? latitude.toFixed(6) : '' },
+                    { label: 'Longitude', value: hasMapCoordinates ? longitude.toFixed(6) : '' },
                   ].filter(row => row.value).map(row => (
                     <div key={row.label} className="info-row location-info-row">
                       <dt className="info-label">{row.label}</dt>

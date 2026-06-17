@@ -143,6 +143,9 @@ function App({ containerId }) {
   const settings = window.propertyPluginData?.settings || {};
   const googlePlacesApiKey = (settings.googleApiKey || '').trim();
   const hasGooglePlacesKey = Boolean(googlePlacesApiKey);
+  const desktopBannerHeight = parseInt(settings.bannerHeight, 10) || 320;
+  const mobileBannerHeight = parseInt(settings.bannerHeightMobile, 10) || 250;
+  const baseFontSize = parseInt(settings.fontSize, 10) || 16;
   console.log('Google Places API Key:', googlePlacesApiKey);
 
   // Filter states
@@ -492,13 +495,39 @@ function App({ containerId }) {
 
   // Show single property page if a property is selected
   if (selectedProperty) {
-    return <PropertySingle property={selectedProperty} onBack={handleBackToList} settings={settings} />;
+    const singlePropertyContent = (
+      <PropertySingle property={selectedProperty} onBack={handleBackToList} settings={settings} />
+    );
+
+    if (hasGooglePlacesKey) {
+      return (
+        <APIProvider apiKey={googlePlacesApiKey} libraries={['places']}>
+          {singlePropertyContent}
+        </APIProvider>
+      );
+    }
+
+    return singlePropertyContent;
   }
 
   // Build the full app content; wrap in a single APIProvider when the key
   // is available so the Google Maps JS API is loaded exactly once.
   const appContent = (
-    <div className="wps-app" id={containerId}>
+    <div
+      className="wps-app"
+      id={containerId}
+      style={{
+        '--wps-primary-color': settings.primaryColor || '#2563eb',
+        '--wps-secondary-color': settings.secondaryColor || '#10b981',
+        '--wps-text-color': settings.textColor || '#1f2937',
+        '--wps-background-color': settings.backgroundColor || '#f3f4f6',
+        '--wps-card-background': settings.cardBackground || '#ffffff',
+        '--wps-font-family': settings.fontFamily || 'Arial, sans-serif',
+        '--wps-font-size': `${baseFontSize}px`,
+        '--wps-banner-height': `${desktopBannerHeight}px`,
+        '--wps-banner-mobile-height': `${mobileBannerHeight}px`
+      }}
+    >
       {/* Apply custom CSS from settings */}
       {settings.customCSS && (
         <style dangerouslySetInnerHTML={{ __html: settings.customCSS }} />
@@ -520,7 +549,6 @@ function App({ containerId }) {
           backgroundImage: settings.bannerImage ? `url(${settings.bannerImage})` : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          height: `${settings.bannerHeight || 400}px`,
           position: 'relative'
         }}
       >
@@ -821,7 +849,7 @@ function App({ containerId }) {
                         className="property-card"
                         style={{
                           cursor: 'pointer',
-                          backgroundColor: settings.cardBackground || '#ffffff'
+                          backgroundColor: 'var(--wps-card-background)'
                         }}
                         onClick={() => handlePropertyClick(property)}
                       >
@@ -868,7 +896,7 @@ function App({ containerId }) {
                               <i className="fas fa-map-marker-alt"></i> {property.city || property.address}
                             </p>
                           )}
-                          <p className="property-price" style={{ color: settings.primaryColor || '#2563eb' }}>{property.price}</p>
+                          <p className="property-price">{property.price}</p>
                           <div className="property-features">
                             {[
                               property.bedrooms && property.bedrooms !== 'N/A'

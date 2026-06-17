@@ -84,7 +84,7 @@ function LeadFormModal({ property, onClose, onSubmit }) {
           {/* Left Side */}
           <div className="lead-modal-left">
             <div className="lead-modal-icon">
-              <span aria-hidden="true">Home</span>
+              <i class="fas fa-home"></i>
             </div>
             <h3>Interested in this property?</h3>
             <p>Fill out the form and our property expert will get back to you shortly.</p>

@@ -440,6 +440,8 @@ function wps_get_recent_property_features($property_id, $area) {
  * Enqueue scoped styles for recent properties shortcode.
  */
 function wps_enqueue_recent_properties_assets() {
+    wps_enqueue_fontawesome();
+
     wp_register_style('wps-recent-properties', false, array(), WPS_PLUGIN_VERSION);
     wp_enqueue_style('wps-recent-properties');
     wp_add_inline_style('wps-recent-properties', '
@@ -636,6 +638,7 @@ function wps_enqueue_assets($force = false) {
     
     if ($force || wps_post_has_search_shortcode($post)) {
         wps_debug_log('WP Property Suite: Shortcode found on page');
+        wps_enqueue_fontawesome();
         
         $build_path = WPS_PLUGIN_PATH . 'build';
         wps_debug_log('WP Property Suite: Build path = ' . $build_path);
@@ -678,7 +681,8 @@ function wps_enqueue_assets($force = false) {
                         'headerText' => get_option('wps_header_text', 'Find Your Dream Property'),
                         'bannerSubtitle' => get_option('wps_banner_subtitle', 'Discover the perfect home for your family'),
                         'bannerImage' => get_option('wps_banner_image', ''),
-                        'bannerHeight' => get_option('wps_banner_height', '400'),
+                        'bannerHeight' => get_option('wps_banner_height', '320'),
+                        'bannerHeightMobile' => get_option('wps_banner_height_mobile', '250'),
                         'bannerOverlay' => get_option('wps_banner_overlay', '50'),
                         'bannerOverlayColor' => get_option('wps_banner_overlay_color', '#000000'),
                         'primaryColor' => get_option('wps_primary_color', '#2563eb'),

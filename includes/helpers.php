@@ -8,6 +8,18 @@ if (!defined('ABSPATH')) {
  */
 
 /**
+ * Enqueue Font Awesome for plugin icons.
+ */
+function wps_enqueue_fontawesome() {
+    wp_enqueue_style(
+        'wps-fontawesome',
+        'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css',
+        array(),
+        '6.5.2'
+    );
+}
+
+/**
  * Write debug messages only when WordPress debugging is explicitly enabled.
  */
 function wps_debug_log($message) {

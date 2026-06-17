@@ -58,6 +58,7 @@ function wps_register_settings() {
     register_setting('wps_banner', 'wps_banner_image', array('sanitize_callback' => 'esc_url_raw'));
     register_setting('wps_banner', 'wps_banner_subtitle', array('sanitize_callback' => 'sanitize_text_field'));
     register_setting('wps_banner', 'wps_banner_height', array('sanitize_callback' => 'absint'));
+    register_setting('wps_banner', 'wps_banner_height_mobile', array('sanitize_callback' => 'absint'));
     register_setting('wps_banner', 'wps_banner_overlay', array('sanitize_callback' => 'absint'));
     register_setting('wps_banner', 'wps_banner_overlay_color', array('sanitize_callback' => 'sanitize_hex_color'));
     
@@ -348,14 +349,27 @@ function wps_settings_page() {
                             
                             <tr>
                                 <th scope="row">
-                                    <label for="banner_height"><?php _e('Banner Height', 'wps'); ?></label>
+                                    <label for="banner_height"><?php _e('Banner Height for Desktop', 'wps'); ?></label>
                                 </th>
                                 <td>
                                     <input type="range" id="banner_height" name="wps_banner_height" 
-                                           value="<?php echo esc_attr(get_option('wps_banner_height', '400')); ?>" 
+                                           value="<?php echo esc_attr(get_option('wps_banner_height', '320')); ?>" 
                                            min="200" max="800" class="range-slider" />
-                                    <span id="banner_height_value"><?php echo esc_attr(get_option('wps_banner_height', '400')); ?>px</span>
-                                    <p class="description"><?php _e('Adjust the height of the banner image', 'wps'); ?></p>
+                                    <span id="banner_height_value"><?php echo esc_attr(get_option('wps_banner_height', '320')); ?>px</span>
+                                    <p class="description"><?php _e('Desktop banner height. Default: 320px.', 'wps'); ?></p>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <th scope="row">
+                                    <label for="banner_height_mobile"><?php _e('Banner Height for Mobile', 'wps'); ?></label>
+                                </th>
+                                <td>
+                                    <input type="range" id="banner_height_mobile" name="wps_banner_height_mobile"
+                                           value="<?php echo esc_attr(get_option('wps_banner_height_mobile', '250')); ?>"
+                                           min="160" max="500" class="range-slider" />
+                                    <span id="banner_height_mobile_value"><?php echo esc_attr(get_option('wps_banner_height_mobile', '250')); ?>px</span>
+                                    <p class="description"><?php _e('Mobile banner height. Default: 250px.', 'wps'); ?></p>
                                 </td>
                             </tr>
                             
@@ -1442,6 +1456,7 @@ function wps_admin_enqueue_scripts($hook) {
     
     // Enqueue WordPress media uploader
     wp_enqueue_media();
+    wps_enqueue_fontawesome();
     
     // Enqueue color picker
     wp_enqueue_style('wp-color-picker');
@@ -1474,6 +1489,7 @@ function wps_save_all_settings_ajax() {
         'wps_banner_image' => 'esc_url_raw',
         'wps_banner_subtitle' => 'sanitize_text_field',
         'wps_banner_height' => 'absint',
+        'wps_banner_height_mobile' => 'absint',
         'wps_banner_overlay' => 'absint',
         'wps_banner_overlay_color' => 'sanitize_hex_color',
         'wps_primary_color' => 'sanitize_hex_color',

@@ -90,6 +90,8 @@ function wps_install_default_data($force = false) {
         if (isset($p['state'])) update_post_meta($post_id, '_property_state', sanitize_text_field($p['state']));
         if (isset($p['zipcode'])) update_post_meta($post_id, '_property_zipcode', sanitize_text_field($p['zipcode']));
         if (isset($p['country'])) update_post_meta($post_id, '_property_country', sanitize_text_field($p['country']));
+        if (isset($p['lat']) && is_numeric($p['lat'])) update_post_meta($post_id, '_property_latitude', sanitize_text_field($p['lat']));
+        if (isset($p['lng']) && is_numeric($p['lng'])) update_post_meta($post_id, '_property_longitude', sanitize_text_field($p['lng']));
         if (isset($p['status'])) update_post_meta($post_id, '_property_status', sanitize_text_field($p['status']));
         // Featured image sideload - save original URL as fallback
         if (!empty($p['thumbnail_url'])) {
@@ -199,6 +201,7 @@ function wps_install_default_data($force = false) {
                 'headerText' => 'wps_header_text',
                 'bannerSubtitle' => 'wps_banner_subtitle',
                 'bannerHeight' => 'wps_banner_height',
+                'bannerHeightMobile' => 'wps_banner_height_mobile',
                 'bannerOverlay' => 'wps_banner_overlay',
                 'bannerOverlayColor' => 'wps_banner_overlay_color',
                 'primaryColor' => 'wps_primary_color',

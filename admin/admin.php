@@ -19,6 +19,23 @@ function wps_add_meta_boxes() {
 add_action('add_meta_boxes', 'wps_add_meta_boxes');
 
 /**
+ * Enqueue admin assets used by property edit screens.
+ */
+function wps_admin_property_enqueue_scripts($hook) {
+    if (!in_array($hook, array('post.php', 'post-new.php'), true)) {
+        return;
+    }
+
+    $screen = get_current_screen();
+    if (!$screen || $screen->post_type !== 'wps_property') {
+        return;
+    }
+
+    wps_enqueue_fontawesome();
+}
+add_action('admin_enqueue_scripts', 'wps_admin_property_enqueue_scripts');
+
+/**
  * Meta Box Callback
  */
 function wps_meta_box_callback($post) {
@@ -32,6 +49,8 @@ function wps_meta_box_callback($post) {
     $state = get_post_meta($post->ID, '_property_state', true);
     $zipcode = get_post_meta($post->ID, '_property_zipcode', true);
     $country = get_post_meta($post->ID, '_property_country', true);
+    $latitude = get_post_meta($post->ID, '_property_latitude', true);
+    $longitude = get_post_meta($post->ID, '_property_longitude', true);
     $status = get_post_meta($post->ID, '_property_status', true);
     $featured = get_post_meta($post->ID, '_property_featured', true);
     $gallery_ids = get_post_meta($post->ID, '_property_gallery', true);
@@ -95,7 +114,7 @@ function wps_meta_box_callback($post) {
                 }
                 
                 var autocomplete = new google.maps.places.Autocomplete(input, {
-                    fields: ['address_components', 'formatted_address', 'name'],
+                    fields: ['address_components', 'formatted_address', 'geometry', 'name'],
                     types: ['geocode'],
                 });
 
@@ -117,6 +136,11 @@ function wps_meta_box_callback($post) {
                     $('#property_state').val(components.administrative_area_level_1 || '');
                     $('#property_zipcode').val(components.postal_code || '');
                     $('#property_country').val(components.country || '');
+
+                    if (place.geometry && place.geometry.location) {
+                        $('#property_latitude').val(place.geometry.location.lat());
+                        $('#property_longitude').val(place.geometry.location.lng());
+                    }
                 });
 
                 input.dataset.wpsAutocompleteReady = '1';
@@ -154,6 +178,20 @@ function wps_meta_box_callback($post) {
         <tr>
             <th><label for="property_country"><?php _e('Country:', 'wps'); ?></label></th>
             <td><input type="text" id="property_country" name="property_country" value="<?php echo esc_attr($country); ?>" style="width: 100%;" placeholder="Country"></td>
+        </tr>
+        <tr>
+            <th><label for="property_latitude"><?php _e('Latitude:', 'wps'); ?></label></th>
+            <td>
+                <input type="text" id="property_latitude" name="property_latitude" value="<?php echo esc_attr($latitude); ?>" style="width: 100%;" placeholder="e.g., 34.052235">
+                <p class="description"><?php _e('Filled automatically when selecting a Google address. Required for the frontend map.', 'wps'); ?></p>
+            </td>
+        </tr>
+        <tr>
+            <th><label for="property_longitude"><?php _e('Longitude:', 'wps'); ?></label></th>
+            <td>
+                <input type="text" id="property_longitude" name="property_longitude" value="<?php echo esc_attr($longitude); ?>" style="width: 100%;" placeholder="e.g., -118.243683">
+                <p class="description"><?php _e('Filled automatically when selecting a Google address. Required for the frontend map.', 'wps'); ?></p>
+            </td>
         </tr>
     </table>
     </div>
@@ -467,6 +505,24 @@ function wps_save_meta_boxes($post_id) {
     
     if (isset($_POST['property_country'])) {
         update_post_meta($post_id, '_property_country', sanitize_text_field(wp_unslash($_POST['property_country'])));
+    }
+
+    if (isset($_POST['property_latitude'])) {
+        $latitude = sanitize_text_field(wp_unslash($_POST['property_latitude']));
+        if ($latitude !== '' && is_numeric($latitude)) {
+            update_post_meta($post_id, '_property_latitude', $latitude);
+        } else {
+            delete_post_meta($post_id, '_property_latitude');
+        }
+    }
+
+    if (isset($_POST['property_longitude'])) {
+        $longitude = sanitize_text_field(wp_unslash($_POST['property_longitude']));
+        if ($longitude !== '' && is_numeric($longitude)) {
+            update_post_meta($post_id, '_property_longitude', $longitude);
+        } else {
+            delete_post_meta($post_id, '_property_longitude');
+        }
     }
     
     if (isset($_POST['property_status'])) {
