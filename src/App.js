@@ -137,6 +137,7 @@ function App({ containerId }) {
   const [showLeadForm, setShowLeadForm] = useState(false);
   const [leadProperty, setLeadProperty] = useState(null);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [searching, setSearching] = useState(false);
   const [, setFavoritesVersion] = useState(0);
 
   // Get settings from WordPress
@@ -347,7 +348,11 @@ function App({ containerId }) {
     }));
   };
 
-  const handleApplyFilters = () => {};
+  const handleApplyFilters = () => {
+    setSearching(true);
+    setCurrentPage(1);
+    setTimeout(() => setSearching(false), 400);
+  };
 
   const handleResetFilters = () => {
     setFilters({
@@ -364,7 +369,11 @@ function App({ containerId }) {
     setCurrentPage(1);
   };
 
-  const handleSearch = () => {};
+  const handleSearch = () => {
+    setSearching(true);
+    setCurrentPage(1);
+    setTimeout(() => setSearching(false), 400);
+  };
 
   // Parse price string to number
   const parsePrice = (priceString) => {
@@ -820,7 +829,13 @@ function App({ containerId }) {
               </div>
 
               {/* Properties Grid */}
-              <div className="properties-grid">
+              <div className={`properties-grid${searching ? ' is-searching' : ''}`}>
+                {searching && (
+                  <div className="wps-search-loader">
+                    <div className="wps-search-spinner"></div>
+                    <p>Searching properties...</p>
+                  </div>
+                )}
                 {currentPosts.length === 0 ? (
                   <div className="no-properties">
                     {showFavoritesOnly ? (

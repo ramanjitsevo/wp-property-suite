@@ -636,7 +636,7 @@ function PropertySingle({ property, onBack, settings }) {
 
             {activeTab === 'overview' && (
               <section className="property-overview-section" aria-labelledby="property-overview-heading">
-                <div className="overview-two-column">
+                <div className="overview-one-column">
                   <div className="overview-description">
                     <h2 id="property-overview-heading">About This Property</h2>
                     {property.content ? (
@@ -644,11 +644,7 @@ function PropertySingle({ property, onBack, settings }) {
                     ) : (
                       <p><em>No description available for this property.</em></p>
                     )}
-                  </div>
-                  <div className="overview-map">
-                    <h2>Property Location</h2>
-                    {renderLocationContent()}
-                  </div>
+                  </div>                 
                 </div>
                 {renderBottomBar()}
               </section>
@@ -775,7 +771,7 @@ function PropertySingle({ property, onBack, settings }) {
           <div className="property-single-sidebar" role="complementary" aria-label="Property summary and inquiry">
             <div className="property-details-card">
               <div className="details-header">
-                <span className="featured-label">{settings?.featuredLabel || 'FEATURED PROPERTY'}</span>
+                {property.featured && <span className="featured-label">{settings?.featuredLabel || 'FEATURED PROPERTY'}</span>}
                 <h1 className="property-title" itemProp="name">{property.title}</h1>
                 <p className="property-address" itemProp="address">
                   <i className="fas fa-map-marker-alt" aria-hidden="true"></i>

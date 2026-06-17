@@ -3,13 +3,9 @@
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
   color: #333;
   line-height: 1.6;
-  width: 100vw;
-  max-width: 100vw;
-  position: relative;
-  left: 50%;
-  right: 50%;
-  margin-left: -50vw;
-  margin-right: -50vw;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
   background: #f8f9fa;
 }
 
@@ -414,8 +410,8 @@
 }
 
 .feature-detail-icon {
-  font-size: 22px;
-  color: #2196f3;
+  font-size: 22px;  
+  color: var(--wps-primary-color, #4fc3f7);
 }
 
 .feature-detail-label {
@@ -619,11 +615,11 @@
 
 .featured-label {
   display: inline-block;
-  font-size: 11px;
-  color: #4fc3f7;
+  font-size: 11px;  
   font-weight: 600;
   text-transform: uppercase;
   margin-bottom: 8px;
+  color: var(--wps-primary-color, #4fc3f7);
 }
 
 .property-title {
